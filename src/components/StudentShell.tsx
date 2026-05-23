@@ -75,7 +75,7 @@ export default function StudentShell({
     },
     {
       label: "",
-      items: [{ href: "/app/community", label: "Community chat", icon: "💬", locked: true }],
+      items: [{ href: "/app/community", label: "Community chat", icon: "💬" }],
     },
   ];
 
