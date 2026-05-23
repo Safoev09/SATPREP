@@ -11,6 +11,10 @@ export type UserProfile = {
   target_score: number | null;
   region: "us" | "international" | null;
   target_exam_date: string | null;
+  xp: number;
+  current_streak: number;
+  longest_streak: number;
+  last_activity_date: string | null;
 };
 
 // Get the current user + their profile (server-side). Returns null if not logged in.
