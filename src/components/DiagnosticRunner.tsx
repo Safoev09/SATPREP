@@ -146,6 +146,13 @@ export default function DiagnosticRunner({
       .update({ diagnostic_completed: true })
       .eq("id", user.id);
 
+    // Award XP + update streak
+    const { awardProgress, calculateXp } = await import("@/lib/gamification");
+    await awardProgress({
+      userId: user.id,
+      xpEarned: calculateXp(correctCount, "diagnostic"),
+    });
+
     router.push(`/app/diagnostic/results?session=${session.id}`);
     router.refresh();
   };

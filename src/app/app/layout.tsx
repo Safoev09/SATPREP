@@ -13,6 +13,8 @@ export default async function AppLayout({
       userEmail={data.email}
       userName={data.profile.full_name ?? ""}
       hasLifetimeAccess={data.profile.has_lifetime_access}
+      xp={data.profile.xp ?? 0}
+      streak={data.profile.current_streak ?? 0}
     >
       {children}
     </StudentShell>

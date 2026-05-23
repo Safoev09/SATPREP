@@ -204,6 +204,13 @@ export default function FullTestRunner({
       })
       .eq("id", sessionId);
 
+    // Award XP + update streak
+    const { awardProgress, calculateXp } = await import("@/lib/gamification");
+    await awardProgress({
+      userId: user.id,
+      xpEarned: calculateXp(rwCorrect + mathCorrect, "full_test"),
+    });
+
     router.push(`/app/full-test/${sessionId}/results`);
     router.refresh();
   };

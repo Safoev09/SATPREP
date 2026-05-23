@@ -5,16 +5,27 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
 
+type NavItem = {
+  href: string;
+  label: string;
+  icon: string;
+  badge?: string;
+};
+
 export default function StudentShell({
   children,
   userEmail,
   userName,
   hasLifetimeAccess,
+  xp,
+  streak,
 }: {
   children: React.ReactNode;
   userEmail: string;
   userName: string;
   hasLifetimeAccess: boolean;
+  xp: number;
+  streak: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -38,44 +49,34 @@ export default function StudentShell({
     router.refresh();
   };
 
-  const sections: {
-    label: string;
-    items: { href: string; label: string; icon: string; locked?: boolean; premium?: boolean }[];
-  }[] = [
+  const sections: { label: string; items: NavItem[] }[] = [
     {
       label: "",
-      items: [{ href: "/app", label: "Dashboard", icon: "🏠" }],
+      items: [{ href: "/app", label: "Today", icon: "home" }],
     },
     {
-      label: "Full SAT",
+      label: "Practice",
       items: [
-        { href: "/app/full-test", label: "Full mock test", icon: "📝", premium: !hasLifetimeAccess },
+        { href: "/app/rw/drills", label: "R&W drills", icon: "target" },
+        { href: "/app/math/drills", label: "Math drills", icon: "target" },
+        { href: "/app/rw/modules", label: "R&W modules", icon: "book" },
+        { href: "/app/math/modules", label: "Math modules", icon: "calc" },
+        { href: "/app/full-test", label: "Mock exams", icon: "exam" },
       ],
     },
     {
-      label: "Math",
+      label: "Progress",
       items: [
-        { href: "/app/math/modules", label: "Math modules", icon: "🧮", premium: !hasLifetimeAccess },
-        { href: "/app/math/drills", label: "Math drills", icon: "🎯" },
+        { href: "/app/progress", label: "Score map", icon: "chart" },
+        { href: "/app/review", label: "Review queue", icon: "bookmark" },
       ],
     },
     {
-      label: "Reading & Writing",
+      label: "Community",
       items: [
-        { href: "/app/rw/modules", label: "R&W modules", icon: "📖", premium: !hasLifetimeAccess },
-        { href: "/app/rw/drills", label: "R&W drills", icon: "🎯" },
+        { href: "/app/community", label: "Community chat", icon: "chat" },
+        { href: "/app/diagnostic", label: "Diagnostic", icon: "clipboard" },
       ],
-    },
-    {
-      label: "Your data",
-      items: [
-        { href: "/app/review", label: "Review queue", icon: "🔖" },
-        { href: "/app/progress", label: "Progress", icon: "📊" },
-      ],
-    },
-    {
-      label: "",
-      items: [{ href: "/app/community", label: "Community chat", icon: "💬" }],
     },
   ];
 
@@ -84,25 +85,32 @@ export default function StudentShell({
     : userEmail[0]?.toUpperCase() ?? "U";
 
   return (
-    <div className="min-h-screen flex bg-cream-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-cream-100 border-r border-coffee-700/10 flex flex-col">
-        <div className="p-5 border-b border-coffee-700/10">
-          <Link href="/app" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-coffee-800 text-cream-50 grid place-items-center font-display italic font-bold">
+    <div className="min-h-screen flex bg-cream-100">
+      {/* ===== SIDEBAR ===== */}
+      <aside className="w-64 bg-cream-50 border-r border-coffee-700/10 flex flex-col fixed h-screen">
+        {/* Logo */}
+        <div className="px-5 py-5">
+          <Link href="/app" className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-coffee-800 text-cream-50 grid place-items-center font-display italic font-bold text-lg">
               S
             </div>
-            <span className="font-display font-semibold text-lg text-coffee-800">
-              SATPrep
-            </span>
+            <div>
+              <div className="font-display font-semibold text-coffee-900 leading-none">
+                SATPrep
+              </div>
+              <div className="text-[10px] text-coffee-500 uppercase tracking-wider mt-1">
+                Digital SAT
+              </div>
+            </div>
           </Link>
         </div>
 
-        <nav className="flex-1 p-3 overflow-y-auto">
+        {/* Nav */}
+        <nav className="flex-1 px-3 overflow-y-auto">
           {sections.map((sec, i) => (
-            <div key={i} className="mb-4">
+            <div key={i} className="mb-5">
               {sec.label && (
-                <div className="text-xs text-coffee-600 uppercase tracking-wider px-3 mb-1.5 font-medium">
+                <div className="text-[11px] text-coffee-500 uppercase tracking-[0.12em] px-3 mb-2 font-semibold">
                   {sec.label}
                 </div>
               )}
@@ -112,31 +120,21 @@ export default function StudentShell({
                     item.href === "/app"
                       ? pathname === "/app"
                       : pathname.startsWith(item.href);
-                  return item.locked ? (
-                    <div
-                      key={item.href}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-coffee-600/60 cursor-not-allowed"
-                      title="Coming soon"
-                    >
-                      <span>{item.icon}</span>
-                      <span className="flex-1">{item.label}</span>
-                      <span className="text-xs">🔒</span>
-                    </div>
-                  ) : (
+                  return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                         active
-                          ? "bg-coffee-800 text-cream-50 font-medium"
+                          ? "bg-coffee-800 text-cream-50 font-medium shadow-sm"
                           : "text-coffee-700 hover:bg-cream-200"
                       }`}
                     >
-                      <span>{item.icon}</span>
+                      <NavIcon name={item.icon} active={active} />
                       <span className="flex-1">{item.label}</span>
-                      {item.premium && (
-                        <span className="text-[10px] bg-accent text-coffee-900 px-1.5 py-0.5 rounded-full font-medium">
-                          PRO
+                      {item.badge && (
+                        <span className="text-[10px] bg-accent/20 text-accent px-1.5 py-0.5 rounded-full font-semibold">
+                          {item.badge}
                         </span>
                       )}
                     </Link>
@@ -147,25 +145,43 @@ export default function StudentShell({
           ))}
         </nav>
 
-        {!hasLifetimeAccess && (
-          <div className="p-3 border-t border-coffee-700/10">
-            <Link
-              href="/app/upgrade"
-              className="block bg-coffee-800 hover:bg-coffee-900 text-cream-50 text-center text-sm font-medium py-2.5 rounded-lg transition"
-            >
-              ✨ Unlock everything
-            </Link>
-            <p className="text-xs text-coffee-600 mt-2 text-center">
-              19,900 so'm · lifetime
-            </p>
+        {/* Streak banner */}
+        <div className="p-3">
+          <div className="bg-gradient-to-br from-accent/15 to-cream-200 rounded-2xl p-4 border border-accent/20">
+            <div className="flex items-center gap-2.5">
+              <div className="text-2xl">🔥</div>
+              <div>
+                <div className="font-display font-semibold text-coffee-900 text-sm leading-tight">
+                  {streak > 0 ? `${streak}-day streak` : "Start your streak"}
+                </div>
+                <div className="text-[11px] text-coffee-600">
+                  {streak > 0 ? "Keep it alive today" : "Practise today to begin"}
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </aside>
 
-      {/* Main column */}
-      <div className="flex-1 flex flex-col">
-        {/* Top bar with profile dropdown */}
-        <header className="bg-cream-50 border-b border-coffee-700/10 px-8 py-4 flex justify-end items-center">
+      {/* ===== MAIN COLUMN ===== */}
+      <div className="flex-1 flex flex-col ml-64">
+        {/* Top bar */}
+        <header className="bg-cream-50/80 backdrop-blur border-b border-coffee-700/10 px-8 py-3 flex justify-between items-center sticky top-0 z-20">
+          {/* XP + streak chips */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-cream-100 rounded-full px-3 py-1.5 border border-coffee-700/10">
+              <span className="text-sm">💎</span>
+              <span className="text-sm font-semibold text-coffee-800">{xp}</span>
+              <span className="text-xs text-coffee-500">XP</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-cream-100 rounded-full px-3 py-1.5 border border-coffee-700/10">
+              <span className="text-sm">🔥</span>
+              <span className="text-sm font-semibold text-coffee-800">{streak}</span>
+              <span className="text-xs text-coffee-500">streak</span>
+            </div>
+          </div>
+
+          {/* Profile menu */}
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -177,37 +193,31 @@ export default function StudentShell({
               <span className="text-sm text-coffee-800 font-medium hidden sm:block">
                 {userName || "Account"}
               </span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-coffee-600">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-coffee-500">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-56 bg-cream-50 border border-coffee-700/10 rounded-xl shadow-lg overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-56 bg-cream-50 border border-coffee-700/10 rounded-2xl shadow-lg overflow-hidden">
                 <div className="px-4 py-3 border-b border-coffee-700/10">
                   <div className="text-sm font-medium text-coffee-800 truncate">
                     {userName || "Account"}
                   </div>
-                  <div className="text-xs text-coffee-600 truncate">{userEmail}</div>
+                  <div className="text-xs text-coffee-500 truncate">{userEmail}</div>
                 </div>
-                <Link
-                  href="/app/profile"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-coffee-700 hover:bg-cream-100"
-                >
-                  👤 Profile
+                <Link href="/app/profile" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-coffee-700 hover:bg-cream-100">
+                  Profile
                 </Link>
-                <Link
-                  href="/app/settings"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-coffee-700 hover:bg-cream-100"
-                >
-                  ⚙️ Settings
+                <Link href="/app/settings" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-coffee-700 hover:bg-cream-100">
+                  Settings
                 </Link>
-                <button
-                  onClick={logout}
-                  className="block w-full text-left px-4 py-2.5 text-sm text-red-700 hover:bg-cream-100 border-t border-coffee-700/10"
-                >
+                {!hasLifetimeAccess && (
+                  <Link href="/app/upgrade" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-accent font-medium hover:bg-cream-100">
+                    ✨ Upgrade to premium
+                  </Link>
+                )}
+                <button onClick={logout} className="block w-full text-left px-4 py-2.5 text-sm text-red-700 hover:bg-cream-100 border-t border-coffee-700/10">
                   Sign out
                 </button>
               </div>
@@ -215,8 +225,45 @@ export default function StudentShell({
           </div>
         </header>
 
-        <main className="flex-1 overflow-x-hidden">{children}</main>
+        <main className="flex-1">{children}</main>
       </div>
     </div>
   );
+}
+
+// Simple inline SVG icons — calm, consistent line style
+function NavIcon({ name, active }: { name: string; active: boolean }) {
+  const color = active ? "#FBF7F1" : "#8B6B4A";
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: color,
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+  switch (name) {
+    case "home":
+      return <svg {...common}><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M9 21V12h6v9" /></svg>;
+    case "target":
+      return <svg {...common}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></svg>;
+    case "book":
+      return <svg {...common}><path d="M4 4h13a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2z" /><path d="M4 4v14" /></svg>;
+    case "calc":
+      return <svg {...common}><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 7h6M9 11h0M13 11h0M9 15h0M13 15h0" /></svg>;
+    case "exam":
+      return <svg {...common}><path d="M5 3h14v18l-7-4-7 4z" /></svg>;
+    case "chart":
+      return <svg {...common}><path d="M4 19V5M4 19h16M8 16v-5M13 16V8M18 16v-9" /></svg>;
+    case "bookmark":
+      return <svg {...common}><path d="M6 3h12v18l-6-4-6 4z" /></svg>;
+    case "chat":
+      return <svg {...common}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>;
+    case "clipboard":
+      return <svg {...common}><rect x="6" y="4" width="12" height="17" rx="2" /><path d="M9 4V2h6v2" /><path d="M9 11h6M9 15h4" /></svg>;
+    default:
+      return <svg {...common}><circle cx="12" cy="12" r="9" /></svg>;
+  }
 }

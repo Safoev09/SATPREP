@@ -24,7 +24,7 @@ export async function getUserAndProfile(): Promise<{
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, full_name, is_admin, has_lifetime_access, diagnostic_completed, previous_score, target_score, region, target_exam_date")
+    .select("id, full_name, is_admin, has_lifetime_access, diagnostic_completed, previous_score, target_score, region, target_exam_date, xp, current_streak, longest_streak, last_activity_date")
     .eq("id", user.id)
     .single();
 

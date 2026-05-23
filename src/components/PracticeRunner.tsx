@@ -196,6 +196,13 @@ export default function PracticeRunner({
       })
       .eq("id", sessionId);
 
+    // Award XP + update streak
+    const { awardProgress, calculateXp } = await import("@/lib/gamification");
+    await awardProgress({
+      userId: user.id,
+      xpEarned: calculateXp(correctCount, mode),
+    });
+
     router.push(`/app/practice/${sessionId}/results`);
     router.refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
