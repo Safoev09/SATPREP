@@ -2,6 +2,7 @@ import { requireStudent } from "@/lib/auth-helpers";
 import { createClient } from "@/lib/supabase-server";
 import { daysUntil, SAT_EXAM_DATES } from "@/lib/exam-dates";
 import { getSkillLabel } from "@/lib/skills";
+import { getRecommendation } from "@/lib/recommendations";
 import DashboardView from "@/components/DashboardView";
 
 export default async function DashboardPage() {
@@ -64,6 +65,12 @@ export default async function DashboardPage() {
   const totalAnswered = answers?.length ?? 0;
   const totalCorrect = (answers ?? []).filter((a) => a.is_correct).length;
 
+  const recommendation = getRecommendation(
+    skillStats,
+    profile.diagnostic_completed,
+    totalAnswered
+  );
+
   return (
     <DashboardView
       firstName={firstName}
@@ -82,6 +89,7 @@ export default async function DashboardPage() {
       skillStats={skillStats}
       totalAnswered={totalAnswered}
       totalCorrect={totalCorrect}
+      recommendation={recommendation}
     />
   );
 }
