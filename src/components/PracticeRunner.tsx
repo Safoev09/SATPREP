@@ -63,6 +63,8 @@ export default function PracticeRunner({
 
   // Highlighter state — per-question saved ranges of the passage (simple: stored text offsets)
   const [highlightOn, setHighlightOn] = useState(false);
+  // Reading focus — when true, the question panel dims to help the student lock in on the passage
+  const [passageFocused, setPassageFocused] = useState(false);
 
   const q = questions[current];
   const a = answers[current];
@@ -220,14 +222,14 @@ export default function PracticeRunner({
   const showResult = practiceMode === "practice" && a.submitted;
 
   return (
-    <div className="min-h-screen flex flex-col bg-cream-50">
+    <div className="min-h-screen flex flex-col bg-cream-50 dark:bg-midnight-100">
       {/* ===== TOP BAR ===== */}
-      <header className="border-b border-coffee-700/15 bg-cream-100 px-6 py-3 flex items-center justify-between">
+      <header className="border-b border-coffee-700/15 dark:border-cream-200/10 bg-cream-100 dark:bg-midnight-50 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <span className="font-display font-semibold text-coffee-900">
+          <span className="font-display font-semibold text-coffee-900 dark:text-cream-50">
             {section === "math" ? "Math" : "R&W"} {mode === "module" ? "module" : "drill"}
           </span>
-          <span className="text-sm text-coffee-600">
+          <span className="text-sm text-coffee-600 dark:text-cream-200/70">
             {mode === "module" ? skill : getSkillLabel(skill)}
           </span>
         </div>
@@ -245,7 +247,7 @@ export default function PracticeRunner({
           )}
           <button
             onClick={() => setTimerHidden(!timerHidden)}
-            className="text-xs text-coffee-600 hover:text-coffee-900"
+            className="text-xs text-coffee-600 dark:text-cream-200/70 hover:text-coffee-900 dark:text-cream-50"
           >
             {timerHidden ? "Show timer" : "Hide timer"}
           </button>
@@ -290,8 +292,12 @@ export default function PracticeRunner({
       <div className="flex-1 flex overflow-hidden">
         {/* LEFT: passage (R&W) or nothing (Math) */}
         {section === "reading_writing" && q.passage_id && passages[q.passage_id] && (
-          <div className="w-1/2 border-r border-coffee-700/15 overflow-y-auto p-8">
-            <div className="text-xs text-coffee-600 uppercase tracking-wider mb-3">
+          <div
+            onMouseEnter={() => setPassageFocused(true)}
+            onMouseLeave={() => setPassageFocused(false)}
+            className="w-1/2 border-r border-coffee-700/15 dark:border-cream-200/10 overflow-y-auto p-8 transition-all duration-300"
+          >
+            <div className="text-xs text-coffee-600 dark:text-cream-200/70 uppercase tracking-wider mb-3">
               Passage
             </div>
             <Passage
@@ -304,11 +310,13 @@ export default function PracticeRunner({
         {/* RIGHT: question + choices */}
         <div className={`${
           section === "reading_writing" && q.passage_id ? "w-1/2" : "w-full max-w-3xl mx-auto"
-        } overflow-y-auto p-8`}>
+        } overflow-y-auto p-8 transition-opacity duration-300 ${
+          passageFocused ? "opacity-60" : "opacity-100"
+        }`}>
           {/* Question number bar */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <span className="bg-coffee-800 text-cream-50 font-medium text-sm px-3 py-1 rounded-lg">
+              <span className="bg-coffee-800 dark:bg-accent/90 text-cream-50 font-medium text-sm px-3 py-1 rounded-lg">
                 Question {current + 1} of {questions.length}
               </span>
               <button
@@ -335,13 +343,13 @@ export default function PracticeRunner({
           </div>
 
           {/* Prompt */}
-          <div className="font-display text-lg text-coffee-900 leading-relaxed mb-4">
+          <div className="font-display text-lg text-coffee-900 dark:text-cream-50 leading-relaxed mb-4">
             <RichText text={q.prompt} />
           </div>
 
           {/* LaTeX block */}
           {q.prompt_latex && (
-            <div className="bg-cream-100 rounded-lg p-4 mb-4 overflow-x-auto">
+            <div className="bg-cream-100 dark:bg-midnight-50 rounded-lg p-4 mb-4 overflow-x-auto">
               <BlockMath math={q.prompt_latex} errorColor="#cc0000" />
             </div>
           )}
@@ -352,7 +360,7 @@ export default function PracticeRunner({
             <img
               src={q.prompt_image_url}
               alt="Question figure"
-              className="max-w-full rounded-lg border border-coffee-700/10 mb-4"
+              className="max-w-full rounded-lg border border-coffee-700/10 dark:border-cream-200/8 mb-4"
             />
           )}
 
@@ -390,26 +398,32 @@ export default function PracticeRunner({
                   <div key={letter} className="flex items-center gap-2">
                     <button
                       onClick={() => selectChoice(letter)}
-                      className={`flex-1 flex items-center gap-3 p-3.5 rounded-xl border-2 transition text-left ${style} ${
-                        struck ? "opacity-40" : ""
+                      className={`flex-1 flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all duration-200 text-left ${style} ${
+                        struck ? "opacity-40" : "hover:scale-[1.01] hover:shadow-sm"
+                      } ${
+                        selected && !showResult
+                          ? "option-glow bg-gradient-to-br from-cream-200 to-cream-100 dark:from-accent/20 dark:to-midnight-50"
+                          : ""
                       }`}
                     >
-                      <span className={`w-7 h-7 rounded-full grid place-items-center text-sm font-semibold shrink-0 ${
-                        selected ? "bg-coffee-800 text-cream-50" : "bg-cream-100 border-2 border-coffee-700 text-coffee-800"
+                      <span className={`w-7 h-7 rounded-full grid place-items-center text-sm font-semibold shrink-0 transition ${
+                        selected
+                          ? "bg-coffee-800 dark:bg-accent text-cream-50"
+                          : "bg-cream-100 dark:bg-midnight-50 border-2 border-coffee-700 dark:border-cream-200/30 text-coffee-800 dark:text-cream-200"
                       }`}>
                         {letter}
                       </span>
-                      <span className={`text-coffee-800 ${struck ? "line-through" : ""}`}>
+                      <span className={`text-coffee-800 dark:text-cream-100 ${struck ? "line-through" : ""}`}>
                         <RichText text={choiceText} />
                       </span>
                       {showResult && isAnswer && (
-                        <span className="ml-auto text-green-700 text-sm font-medium">✓ Correct</span>
+                        <span className="ml-auto text-green-700 dark:text-green-400 text-sm font-medium">✓ Correct</span>
                       )}
                     </button>
                     <button
                       onClick={() => toggleStrike(letter)}
                       title="Eliminate this choice"
-                      className="w-8 h-8 rounded-lg bg-cream-100 hover:bg-cream-200 text-coffee-600 text-xs font-bold shrink-0"
+                      className="w-8 h-8 rounded-lg bg-cream-100 dark:bg-midnight-50 hover:bg-cream-200 dark:hover:bg-midnight-50/80 text-coffee-600 dark:text-cream-200/70 text-xs font-bold shrink-0 transition"
                     >
                       {struck ? "↺" : "✕"}
                     </button>
@@ -426,7 +440,7 @@ export default function PracticeRunner({
                 <button
                   onClick={submitPractice}
                   disabled={a.selected == null}
-                  className="bg-coffee-800 hover:bg-coffee-900 disabled:opacity-40 text-cream-50 px-6 py-2.5 rounded-full font-medium text-sm"
+                  className="bg-coffee-800 dark:bg-accent/90 hover:bg-coffee-900 disabled:opacity-40 text-cream-50 px-6 py-2.5 rounded-full font-medium text-sm"
                 >
                   Check answer
                 </button>
@@ -442,12 +456,12 @@ export default function PracticeRunner({
                   }`}>
                     {isCorrect(a, q) ? "✓ Correct!" : "✗ Not quite"}
                     {!isCorrect(a, q) && (
-                      <span className="text-coffee-700 font-normal">
+                      <span className="text-coffee-700 dark:text-cream-200 font-normal">
                         {" "}— the answer is {isSPR ? q.spr_answer : q.correct_answer}.
                       </span>
                     )}
                   </div>
-                  <div className="text-sm text-coffee-800 leading-relaxed">
+                  <div className="text-sm text-coffee-800 dark:text-cream-100 leading-relaxed">
                     <RichText text={q.explanation} />
                   </div>
                 </div>
@@ -458,18 +472,18 @@ export default function PracticeRunner({
       </div>
 
       {/* ===== BOTTOM BAR ===== */}
-      <footer className="border-t border-coffee-700/15 bg-cream-100 px-6 py-3 flex items-center justify-between">
+      <footer className="border-t border-coffee-700/15 dark:border-cream-200/10 bg-cream-100 dark:bg-midnight-50 px-6 py-3 flex items-center justify-between">
         <button
           onClick={goPrev}
           disabled={current === 0}
-          className="px-5 py-2 rounded-full text-sm font-medium text-coffee-700 hover:bg-cream-200 disabled:opacity-30"
+          className="px-5 py-2 rounded-full text-sm font-medium text-coffee-700 dark:text-cream-200 hover:bg-cream-200 dark:hover:bg-midnight-50 disabled:opacity-30"
         >
           ← Previous
         </button>
 
         <button
           onClick={() => setShowNav(!showNav)}
-          className="text-sm font-medium text-coffee-700 hover:text-coffee-900 bg-cream-200 px-4 py-2 rounded-full"
+          className="text-sm font-medium text-coffee-700 dark:text-cream-200 hover:text-coffee-900 dark:text-cream-50 bg-cream-200 dark:bg-midnight-50/80 px-4 py-2 rounded-full"
         >
           {answeredCount} of {questions.length} answered · Question navigator
         </button>
@@ -477,7 +491,7 @@ export default function PracticeRunner({
         {current < questions.length - 1 ? (
           <button
             onClick={goNext}
-            className="bg-coffee-800 hover:bg-coffee-900 text-cream-50 px-5 py-2 rounded-full text-sm font-medium"
+            className="bg-coffee-800 dark:bg-accent/90 hover:bg-coffee-900 text-cream-50 px-5 py-2 rounded-full text-sm font-medium"
           >
             Next →
           </button>
@@ -499,10 +513,10 @@ export default function PracticeRunner({
           onClick={() => setShowNav(false)}
         >
           <div
-            className="bg-cream-50 rounded-2xl shadow-2xl border border-coffee-700/15 p-6 max-w-lg w-full mx-4"
+            className="glass rounded-2xl p-6 max-w-lg w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="font-display font-semibold text-coffee-900 mb-4">
+            <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 mb-4">
               Jump to question
             </div>
             <div className="grid grid-cols-8 gap-2 mb-4">
@@ -525,7 +539,7 @@ export default function PracticeRunner({
                 );
               })}
             </div>
-            <div className="flex gap-4 text-xs text-coffee-600">
+            <div className="flex gap-4 text-xs text-coffee-600 dark:text-cream-200/70">
               <span>⬛ Current</span>
               <span>🟫 Answered</span>
               <span>🚩 Marked for review</span>

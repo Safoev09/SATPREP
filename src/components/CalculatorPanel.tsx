@@ -141,7 +141,7 @@ export default function CalculatorPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed z-40 bg-cream-50 rounded-2xl shadow-2xl border border-coffee-700/15 overflow-hidden"
+      className="fixed z-40 glass rounded-2xl overflow-hidden"
       style={{
         left: pos.x,
         top: pos.y,

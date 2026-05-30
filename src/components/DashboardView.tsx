@@ -83,10 +83,10 @@ export default function DashboardView({
         <div className="text-xs text-accent uppercase tracking-[0.15em] font-semibold mb-1">
           Today's plan
         </div>
-        <h1 className="font-display text-4xl font-semibold text-coffee-900">
+        <h1 className="font-display text-4xl font-semibold text-coffee-900 dark:text-cream-50">
           {firstName}, here's today's route.
         </h1>
-        <p className="text-coffee-600 mt-1.5">
+        <p className="text-coffee-600 dark:text-cream-200/70 mt-1.5">
           Target {targetScore ?? "—"} ·{" "}
           {examDateDisplay ? `Exam ${examDateDisplay}` : "Exam date not set"}
         </p>
@@ -100,13 +100,13 @@ export default function DashboardView({
         {/* LEFT 2/3 */}
         <div className="col-span-2 space-y-5">
           {/* Score snapshot */}
-          <div className="bg-cream-50 rounded-3xl p-6 border border-coffee-700/10 animate-fadeup" style={{ animationDelay: "60ms" }}>
+          <div className="bg-cream-50 dark:bg-midnight-100 rounded-3xl p-6 border border-coffee-700/10 dark:border-cream-200/8 animate-fadeup" style={{ animationDelay: "60ms" }}>
             <div className="flex items-center justify-between mb-4">
-              <div className="text-xs text-coffee-500 uppercase tracking-wider font-semibold">
+              <div className="text-xs text-coffee-500 dark:text-cream-200/50 uppercase tracking-wider font-semibold">
                 Score snapshot
               </div>
               {targetScore && (
-                <div className="text-xs text-coffee-500">Goal {targetScore}</div>
+                <div className="text-xs text-coffee-500 dark:text-cream-200/50">Goal {targetScore}</div>
               )}
             </div>
             <div className="grid grid-cols-3 gap-4">
@@ -133,17 +133,17 @@ export default function DashboardView({
           </div>
 
           {/* Progress radar */}
-          <div className="bg-cream-50 rounded-3xl p-6 border border-coffee-700/10 animate-fadeup" style={{ animationDelay: "120ms" }}>
+          <div className="bg-cream-50 dark:bg-midnight-100 rounded-3xl p-6 border border-coffee-700/10 dark:border-cream-200/8 animate-fadeup" style={{ animationDelay: "120ms" }}>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <div className="text-xs text-coffee-500 uppercase tracking-wider font-semibold">
+                <div className="text-xs text-coffee-500 dark:text-cream-200/50 uppercase tracking-wider font-semibold">
                   Progress radar
                 </div>
-                <div className="font-display font-semibold text-coffee-900 text-lg">
+                <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 text-lg">
                   Your skill shape
                 </div>
               </div>
-              <div className="flex bg-cream-100 rounded-full p-1">
+              <div className="flex bg-cream-100 dark:bg-midnight-50 rounded-full p-1">
                 <button
                   onClick={() => setRadarSection("reading_writing")}
                   className={`text-xs px-3 py-1.5 rounded-full font-medium transition ${
@@ -170,10 +170,10 @@ export default function DashboardView({
             {radarSkills.length === 0 ? (
               <div className="text-center py-10">
                 <div className="text-3xl mb-2 animate-floaty">📡</div>
-                <div className="font-display font-medium text-coffee-800">
+                <div className="font-display font-medium text-coffee-800 dark:text-cream-100">
                   No skill shape yet
                 </div>
-                <p className="text-sm text-coffee-600 mt-1 max-w-xs mx-auto">
+                <p className="text-sm text-coffee-600 dark:text-cream-200/70 mt-1 max-w-xs mx-auto">
                   Finish a few drills and SATPrep will map your {radarSection === "math" ? "Math" : "R&W"} patterns here.
                 </p>
               </div>
@@ -183,11 +183,11 @@ export default function DashboardView({
           </div>
 
           {/* Today's route */}
-          <div className="bg-cream-50 rounded-3xl p-6 border border-coffee-700/10 animate-fadeup" style={{ animationDelay: "180ms" }}>
-            <div className="text-xs text-coffee-500 uppercase tracking-wider font-semibold mb-1">
+          <div className="bg-cream-50 dark:bg-midnight-100 rounded-3xl p-6 border border-coffee-700/10 dark:border-cream-200/8 animate-fadeup" style={{ animationDelay: "180ms" }}>
+            <div className="text-xs text-coffee-500 dark:text-cream-200/50 uppercase tracking-wider font-semibold mb-1">
               Today's route
             </div>
-            <div className="font-display font-semibold text-coffee-900 text-lg mb-4">
+            <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 text-lg mb-4">
               {diagnosticDone ? "Your next steps" : "Start here"}
             </div>
             <div className="space-y-2.5">
@@ -204,14 +204,14 @@ export default function DashboardView({
         {/* RIGHT RAIL */}
         <div className="space-y-5">
           {/* Streak */}
-          <div className="bg-cream-50 rounded-3xl p-6 border border-coffee-700/10 animate-fadeup" style={{ animationDelay: "60ms" }}>
+          <div className="bg-cream-50 dark:bg-midnight-100 rounded-3xl p-6 border border-coffee-700/10 dark:border-cream-200/8 animate-fadeup" style={{ animationDelay: "60ms" }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="text-4xl animate-flicker">🔥</div>
               <div>
-                <div className="font-display text-3xl font-semibold text-coffee-900 leading-none">
+                <div className="font-display text-3xl font-semibold text-coffee-900 dark:text-cream-50 leading-none">
                   <CountUp value={streak} />
                 </div>
-                <div className="text-xs text-coffee-600 mt-1">day streak</div>
+                <div className="text-xs text-coffee-600 dark:text-cream-200/70 mt-1">day streak</div>
               </div>
             </div>
             <div className="flex justify-between gap-1">
@@ -231,20 +231,20 @@ export default function DashboardView({
                     >
                       {lit ? "🔥" : ""}
                     </div>
-                    <span className="text-[10px] text-coffee-500">{d}</span>
+                    <span className="text-[10px] text-coffee-500 dark:text-cream-200/50">{d}</span>
                   </div>
                 );
               })}
             </div>
             {longestStreak > 0 && (
-              <div className="text-[11px] text-coffee-500 mt-3 text-center">
+              <div className="text-[11px] text-coffee-500 dark:text-cream-200/50 mt-3 text-center">
                 Longest streak: {longestStreak} days
               </div>
             )}
           </div>
 
           {/* XP / Level */}
-          <div className="bg-coffee-800 text-cream-100 rounded-3xl p-6 relative overflow-hidden animate-fadeup" style={{ animationDelay: "120ms" }}>
+          <div className="bg-coffee-800 dark:bg-accent/90 text-cream-100 rounded-3xl p-6 relative overflow-hidden animate-fadeup" style={{ animationDelay: "120ms" }}>
             {/* shimmer sweep */}
             <div
               className="absolute inset-0 opacity-20 pointer-events-none animate-shimmer"
@@ -266,7 +266,7 @@ export default function DashboardView({
                   </div>
                 </div>
               </div>
-              <div className="h-2.5 bg-coffee-900 rounded-full overflow-hidden mb-1.5">
+              <div className="h-2.5 bg-coffee-900 dark:bg-midnight-200 rounded-full overflow-hidden mb-1.5">
                 <div
                   className="h-full bg-accent rounded-full transition-all duration-1000"
                   style={{ width: `${xpPct}%` }}
@@ -279,22 +279,22 @@ export default function DashboardView({
           </div>
 
           {/* Exam countdown */}
-          <div className="bg-cream-50 rounded-3xl p-6 border border-coffee-700/10 animate-fadeup" style={{ animationDelay: "180ms" }}>
-            <div className="text-xs text-coffee-500 uppercase tracking-wider font-semibold mb-2">
+          <div className="bg-cream-50 dark:bg-midnight-100 rounded-3xl p-6 border border-coffee-700/10 dark:border-cream-200/8 animate-fadeup" style={{ animationDelay: "180ms" }}>
+            <div className="text-xs text-coffee-500 dark:text-cream-200/50 uppercase tracking-wider font-semibold mb-2">
               Exam countdown
             </div>
             {daysUntilExam !== null && daysUntilExam >= 0 ? (
               <>
-                <div className="font-display text-4xl font-semibold text-coffee-900">
+                <div className="font-display text-4xl font-semibold text-coffee-900 dark:text-cream-50">
                   <CountUp value={daysUntilExam} />
                 </div>
-                <div className="text-sm text-coffee-600">
+                <div className="text-sm text-coffee-600 dark:text-cream-200/70">
                   days until {examDateDisplay}
                 </div>
               </>
             ) : (
               <>
-                <div className="font-display text-xl font-semibold text-coffee-900 mb-1">
+                <div className="font-display text-xl font-semibold text-coffee-900 dark:text-cream-50 mb-1">
                   No exam date set
                 </div>
                 <Link href="/app/profile" className="text-sm text-accent hover:underline">
@@ -308,22 +308,22 @@ export default function DashboardView({
 
       {/* RECENT RESULTS */}
       {scoredSessions.length > 0 && (
-        <div className="bg-cream-50 rounded-3xl p-6 border border-coffee-700/10 animate-fadeup" style={{ animationDelay: "220ms" }}>
-          <div className="text-xs text-coffee-500 uppercase tracking-wider font-semibold mb-4">
+        <div className="bg-cream-50 dark:bg-midnight-100 rounded-3xl p-6 border border-coffee-700/10 dark:border-cream-200/8 animate-fadeup" style={{ animationDelay: "220ms" }}>
+          <div className="text-xs text-coffee-500 dark:text-cream-200/50 uppercase tracking-wider font-semibold mb-4">
             Recent results
           </div>
           <div className="space-y-2">
             {scoredSessions.map((s) => (
-              <div key={s.id} className="flex items-center justify-between py-2.5 px-4 bg-cream-100 rounded-xl">
+              <div key={s.id} className="flex items-center justify-between py-2.5 px-4 bg-cream-100 dark:bg-midnight-50 rounded-xl">
                 <div>
-                  <div className="text-sm font-medium text-coffee-900 capitalize">
+                  <div className="text-sm font-medium text-coffee-900 dark:text-cream-50 capitalize">
                     {s.mode.replace("_", " ")}
                   </div>
-                  <div className="text-xs text-coffee-500">
+                  <div className="text-xs text-coffee-500 dark:text-cream-200/50">
                     {s.completed_at ? new Date(s.completed_at).toLocaleDateString() : ""}
                   </div>
                 </div>
-                <div className="font-display text-2xl font-semibold text-coffee-800">
+                <div className="font-display text-2xl font-semibold text-coffee-800 dark:text-cream-100">
                   {s.scaled_score}
                 </div>
               </div>
@@ -354,14 +354,14 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
         <div className="text-[11px] text-accent uppercase tracking-wider font-semibold mb-0.5">
           Recommended for you
         </div>
-        <div className="font-display font-semibold text-coffee-900 text-lg">
+        <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 text-lg">
           {rec.headline}
         </div>
-        <p className="text-sm text-coffee-600 mt-0.5">{rec.reason}</p>
+        <p className="text-sm text-coffee-600 dark:text-cream-200/70 mt-0.5">{rec.reason}</p>
       </div>
       <Link
         href={rec.ctaHref}
-        className="bg-coffee-800 hover:bg-coffee-900 text-cream-50 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition shrink-0"
+        className="bg-coffee-800 dark:bg-accent/90 hover:bg-coffee-900 dark:bg-midnight-200 text-cream-50 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition shrink-0"
       >
         {rec.ctaLabel} →
       </Link>
@@ -371,14 +371,14 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
 
 function SnapshotStat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
-    <div className="bg-cream-100 rounded-2xl p-4 hover:bg-cream-200/70 transition">
-      <div className="text-[11px] text-coffee-500 uppercase tracking-wider mb-1">
+    <div className="bg-cream-100 dark:bg-midnight-50 rounded-2xl p-4 hover:bg-cream-200 dark:hover:bg-midnight-50/70 transition">
+      <div className="text-[11px] text-coffee-500 dark:text-cream-200/50 uppercase tracking-wider mb-1">
         {label}
       </div>
-      <div className="font-display text-3xl font-semibold text-coffee-900 leading-none">
+      <div className="font-display text-3xl font-semibold text-coffee-900 dark:text-cream-50 leading-none">
         {value}
       </div>
-      <div className="text-xs text-coffee-500 mt-1">{sub}</div>
+      <div className="text-xs text-coffee-500 dark:text-cream-200/50 mt-1">{sub}</div>
     </div>
   );
 }
@@ -399,17 +399,17 @@ function RouteStep({
   return (
     <Link
       href={href}
-      className="flex items-center gap-4 p-4 bg-cream-100 hover:bg-cream-200 rounded-2xl transition group"
+      className="flex items-center gap-4 p-4 bg-cream-100 dark:bg-midnight-50 hover:bg-cream-200 dark:hover:bg-midnight-50 rounded-2xl transition group"
     >
-      <div className="text-xs font-semibold text-coffee-500 w-5">
+      <div className="text-xs font-semibold text-coffee-500 dark:text-cream-200/50 w-5">
         {String(num).padStart(2, "0")}
       </div>
       <div className="text-2xl group-hover:animate-floaty">{icon}</div>
       <div className="flex-1">
-        <div className="font-medium text-coffee-900 text-sm">{title}</div>
-        <div className="text-xs text-coffee-500">{subtitle}</div>
+        <div className="font-medium text-coffee-900 dark:text-cream-50 text-sm">{title}</div>
+        <div className="text-xs text-coffee-500 dark:text-cream-200/50">{subtitle}</div>
       </div>
-      <div className="text-coffee-500 group-hover:text-coffee-700 group-hover:translate-x-0.5 transition">
+      <div className="text-coffee-500 dark:text-cream-200/50 group-hover:text-coffee-700 dark:text-cream-200 group-hover:translate-x-0.5 transition">
         →
       </div>
     </Link>
@@ -430,10 +430,10 @@ function RadarChart({ skills }: { skills: SkillStat[] }) {
         {pts.map((s, i) => (
           <div key={s.skill} className="animate-fadeup" style={{ animationDelay: `${i * 80}ms` }}>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-coffee-800">{s.label}</span>
-              <span className="text-coffee-500">{s.pct}%</span>
+              <span className="text-coffee-800 dark:text-cream-100">{s.label}</span>
+              <span className="text-coffee-500 dark:text-cream-200/50">{s.pct}%</span>
             </div>
-            <div className="h-2.5 bg-cream-100 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-cream-100 dark:bg-midnight-50 rounded-full overflow-hidden">
               <div
                 className="h-full bg-accent rounded-full transition-all duration-1000"
                 style={{ width: `${s.pct}%` }}
@@ -489,7 +489,7 @@ function RadarChart({ skills }: { skills: SkillStat[] }) {
           );
         })}
       </svg>
-      <p className="text-xs text-coffee-500 mt-2">
+      <p className="text-xs text-coffee-500 dark:text-cream-200/50 mt-2">
         Further from centre = stronger. Based on your practice so far.
       </p>
     </div>
