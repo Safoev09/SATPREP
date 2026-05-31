@@ -54,30 +54,37 @@ export default function StudentShell({
   const sections: { label: string; items: NavItem[] }[] = [
     {
       label: "",
-      items: [{ href: "/app", label: "Today", icon: "home" }],
+      items: [
+        { href: "/app", label: "Today", icon: "home" },
+        { href: "/app/study-plan", label: "Study Plan", icon: "calendar" },
+      ],
     },
     {
       label: "Practice",
       items: [
-        { href: "/app/rw/drills", label: "R&W drills", icon: "target" },
-        { href: "/app/math/drills", label: "Math drills", icon: "target" },
-        { href: "/app/rw/modules", label: "R&W modules", icon: "book" },
-        { href: "/app/math/modules", label: "Math modules", icon: "calc" },
-        { href: "/app/full-test", label: "Mock exams", icon: "exam" },
+        { href: "/app/drills", label: "Drills", icon: "target" },
+        { href: "/app/question-bank", label: "Question Bank", icon: "library" },
+        { href: "/app/full-test", label: "Mock Exams", icon: "exam" },
+      ],
+    },
+    {
+      label: "Learn",
+      items: [
+        { href: "/app/vocabulary", label: "Vocabulary", icon: "book" },
+        { href: "/app/diagnostic", label: "Diagnostic", icon: "clipboard" },
       ],
     },
     {
       label: "Progress",
       items: [
-        { href: "/app/progress", label: "Score map", icon: "chart" },
-        { href: "/app/review", label: "Review queue", icon: "bookmark" },
+        { href: "/app/progress", label: "Score Map", icon: "chart" },
+        { href: "/app/review", label: "Review Queue", icon: "bookmark" },
       ],
     },
     {
       label: "Community",
       items: [
-        { href: "/app/community", label: "Community chat", icon: "chat" },
-        { href: "/app/diagnostic", label: "Diagnostic", icon: "clipboard" },
+        { href: "/app/community", label: "Community", icon: "chat" },
       ],
     },
   ];
@@ -273,6 +280,10 @@ function NavIcon({ name }: { name: string; active?: boolean }) {
       return <svg {...common}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>;
     case "clipboard":
       return <svg {...common}><rect x="6" y="4" width="12" height="17" rx="2" /><path d="M9 4V2h6v2" /><path d="M9 11h6M9 15h4" /></svg>;
+    case "calendar":
+      return <svg {...common}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 9h18M8 3v4M16 3v4" /></svg>;
+    case "library":
+      return <svg {...common}><path d="M4 4h4v16H4z" /><path d="M10 4h4v16h-4z" /><path d="M16 6l4 1-3 14-4-1z" /></svg>;
     default:
       return <svg {...common}><circle cx="12" cy="12" r="9" /></svg>;
   }

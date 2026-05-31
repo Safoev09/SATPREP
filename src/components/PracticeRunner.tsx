@@ -65,6 +65,13 @@ export default function PracticeRunner({
   const [highlightOn, setHighlightOn] = useState(false);
   // Reading focus — when true, the question panel dims to help the student lock in on the passage
   const [passageFocused, setPassageFocused] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Load current user id once on mount
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const q = questions[current];
   const a = answers[current];
@@ -303,6 +310,7 @@ export default function PracticeRunner({
             <Passage
               text={passages[q.passage_id]}
               highlightEnabled={highlightOn}
+              userId={userId}
             />
           </div>
         )}
@@ -559,18 +567,20 @@ export default function PracticeRunner({
 function Passage({
   text,
   highlightEnabled,
+  userId,
 }: {
   text: string;
   highlightEnabled: boolean;
+  userId: string | null;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
+  const [savedToast, setSavedToast] = useState<string | null>(null);
 
   const handleMouseUp = () => {
     if (!highlightEnabled) return;
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !ref.current) return;
     const range = selection.getRangeAt(0);
-    // Only highlight within the passage
     if (!ref.current.contains(range.commonAncestorContainer)) return;
     try {
       const mark = document.createElement("mark");
@@ -583,16 +593,58 @@ function Passage({
     }
   };
 
+  const handleDoubleClick = async () => {
+    if (!userId) return;
+    const sel = window.getSelection()?.toString().trim();
+    if (!sel) return;
+    // Only single words (no spaces, only letters/hyphens) — avoid phrases
+    const cleaned = sel.replace(/[^a-zA-Z\-']/g, "");
+    if (!cleaned || cleaned.length < 2 || cleaned.length > 40) return;
+
+    const word = cleaned.toLowerCase();
+    const { lookupWord } = await import("@/lib/dictionary");
+    const { createClient } = await import("@/lib/supabase-client");
+    const supabase = createClient();
+
+    // Try fetching a definition
+    const entry = await lookupWord(word);
+
+    const { error } = await supabase.from("user_vocab").insert({
+      user_id: userId,
+      word,
+      definition: entry?.definition ?? "(definition not auto-found — edit in Vocabulary)",
+      example: entry?.example ?? null,
+      source_type: "highlight",
+    });
+
+    if (!error) {
+      setSavedToast(`✓ Saved "${word}" to vocabulary`);
+      setTimeout(() => setSavedToast(null), 2500);
+    } else if (error.code === "23505") {
+      setSavedToast(`"${word}" is already in your vocabulary`);
+      setTimeout(() => setSavedToast(null), 2500);
+    }
+  };
+
   return (
-    <div
-      ref={ref}
-      onMouseUp={handleMouseUp}
-      className={`text-coffee-800 leading-relaxed whitespace-pre-wrap ${
-        highlightEnabled ? "cursor-text select-text" : ""
-      }`}
-      style={{ userSelect: highlightEnabled ? "text" : "auto" }}
-    >
-      {text}
-    </div>
+    <>
+      <div
+        ref={ref}
+        onMouseUp={handleMouseUp}
+        onDoubleClick={handleDoubleClick}
+        className={`text-coffee-800 dark:text-cream-100 leading-relaxed whitespace-pre-wrap select-text ${
+          highlightEnabled ? "cursor-text" : ""
+        }`}
+        style={{ userSelect: "text" }}
+        title="Double-click a word to save it to your vocabulary"
+      >
+        {text}
+      </div>
+      {savedToast && (
+        <div className="fixed bottom-6 right-6 z-50 glass rounded-2xl px-5 py-3 text-sm text-coffee-900 dark:text-cream-50 animate-[fadeup_0.3s_ease-out]">
+          {savedToast}
+        </div>
+      )}
+    </>
   );
 }
