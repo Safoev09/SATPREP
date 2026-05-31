@@ -168,7 +168,7 @@ export function generateStudyPlan(opts: {
   } else {
     headline = "Build a steady practice habit.";
     rationale =
-      "You haven't practised enough yet for a tailored plan. A few drills today will let SATPrep see your patterns and pick the smartest focus tomorrow.";
+      "You haven't practised enough yet for a tailored plan. A few drills today will let SATPeaK see your patterns and pick the smartest focus tomorrow.";
   }
 
   return { phase, headline, rationale, tasks: tasks.slice(0, 5) };

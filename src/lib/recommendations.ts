@@ -38,7 +38,7 @@ export function getRecommendation(
     return {
       headline: "Build a practice base",
       reason:
-        "Do a few more drills so SATPrep can map your strengths and weak spots accurately.",
+        "Do a few more drills so SATPeaK can map your strengths and weak spots accurately.",
       ctaLabel: "Start a drill",
       ctaHref: "/app/rw/drills",
       tone: "start",

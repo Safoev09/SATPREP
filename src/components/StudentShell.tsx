@@ -105,7 +105,7 @@ export default function StudentShell({
             </div>
             <div>
               <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 leading-none">
-                SATPrep
+                SATPeaK
               </div>
               <div className="text-[10px] text-coffee-500 dark:text-cream-200/60 uppercase tracking-wider mt-1">
                 Digital SAT

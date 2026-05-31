@@ -48,19 +48,39 @@ export default function UpgradePage() {
               Currently in private beta
             </div>
             <p className="text-sm text-coffee-700 dark:text-cream-200/80 leading-relaxed">
-              SATPrep is in its early access phase. Premium access isn't open self-serve yet — we're working with students directly to make sure everything's perfect.
+              SATPeaK is in its early access phase. Premium access isn't open self-serve yet — we're working with students directly to make sure everything's perfect.
             </p>
           </div>
         </div>
         <p className="text-sm text-coffee-700 dark:text-cream-200/80 leading-relaxed mb-5">
           If you'd like premium access, please reach out and we'll talk you through how to join.
         </p>
-        <div className="flex flex-wrap gap-2">
+
+        {/* Telegram contact info */}
+        <div className="bg-cream-100 dark:bg-midnight-50 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-[#27A7E7] grid place-items-center text-cream-50 text-xl shrink-0">
+              ✈️
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wider text-coffee-500 dark:text-cream-200/50 font-semibold">
+                Contact on Telegram
+              </div>
+              <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 text-lg leading-tight">
+                @ASI_08_30
+              </div>
+            </div>
+          </div>
+          <p className="text-sm text-coffee-700 dark:text-cream-200/80 leading-relaxed mb-4">
+            Message <span className="font-semibold text-coffee-900 dark:text-cream-50">@ASI_08_30</span> on Telegram and let them know you'd like premium access. They'll guide you through the next steps.
+          </p>
           <a
-            href="mailto:your-email@example.com?subject=SATPrep%20premium%20access"
-            className="inline-flex items-center gap-2 bg-coffee-800 dark:bg-accent text-cream-50 px-5 py-2.5 rounded-full text-sm font-medium hover:scale-[1.02] transition"
+            href="https://t.me/ASI_08_30"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-[#27A7E7] hover:bg-[#1E8FCC] text-cream-50 px-5 py-2.5 rounded-full text-sm font-medium hover:scale-[1.02] transition-all"
           >
-            <span>✉️</span> Contact us
+            <span>✈️</span> Open Telegram chat
           </a>
         </div>
       </div>

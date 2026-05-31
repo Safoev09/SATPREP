@@ -42,7 +42,7 @@ export default function AdminShell({
               S
             </div>
             <div>
-              <div className="font-display font-semibold text-cream-50">SATPrep</div>
+              <div className="font-display font-semibold text-cream-50">SATPeaK</div>
               <div className="text-xs text-cream-200/60">Admin Panel</div>
             </div>
           </Link>

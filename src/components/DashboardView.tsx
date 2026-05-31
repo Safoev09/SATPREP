@@ -174,7 +174,7 @@ export default function DashboardView({
                   No skill shape yet
                 </div>
                 <p className="text-sm text-coffee-600 dark:text-cream-200/70 mt-1 max-w-xs mx-auto">
-                  Finish a few drills and SATPrep will map your {radarSection === "math" ? "Math" : "R&W"} patterns here.
+                  Finish a few drills and SATPeaK will map your {radarSection === "math" ? "Math" : "R&W"} patterns here.
                 </p>
               </div>
             ) : (

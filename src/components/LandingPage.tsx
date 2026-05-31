@@ -121,7 +121,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <span className="w-8 h-8 rounded-lg bg-coffee-700 text-cream-50 grid place-items-center font-display italic font-bold">S</span>
-            <span className="font-display font-semibold text-xl text-coffee-800">SATPrep</span>
+            <span className="font-display font-semibold text-xl text-coffee-800">SATPeaK</span>
           </Link>
           <div className="flex gap-6 items-center">
             <a href="#features" className="text-coffee-700 text-sm font-medium hover:text-coffee-900 hidden sm:inline">Features</a>
@@ -323,7 +323,7 @@ export default function LandingPage() {
             <div>
               <Link href="/" className="flex items-center gap-2 mb-4">
                 <span className="w-8 h-8 rounded-lg bg-cream-50 text-coffee-900 grid place-items-center font-display italic font-bold">S</span>
-                <span className="font-display font-semibold text-xl text-cream-50">SATPrep</span>
+                <span className="font-display font-semibold text-xl text-cream-50">SATPeaK</span>
               </Link>
               <p className="text-cream-200/70 text-sm max-w-xs">A calmer, warmer way to prepare for the digital SAT. Built for ambitious students, everywhere.</p>
             </div>
@@ -347,7 +347,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-cream-100/10 pt-7 flex justify-between flex-wrap gap-3 text-cream-200/50 text-sm">
-            <div>© 2026 SATPrep. Not affiliated with College Board.</div>
+            <div>© 2026 SATPeaK. Not affiliated with College Board.</div>
             <div>Made with care in Tashkent ☕</div>
           </div>
         </div>

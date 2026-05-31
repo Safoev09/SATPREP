@@ -55,7 +55,7 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-2">
             <div className="w-10 h-10 rounded-lg bg-coffee-800 text-cream-50 grid place-items-center font-display italic font-bold">S</div>
-            <span className="font-display font-semibold text-2xl text-coffee-800">SATPrep</span>
+            <span className="font-display font-semibold text-2xl text-coffee-800">SATPeaK</span>
           </Link>
           <p className="text-sm text-coffee-600">Create your account</p>
         </div>
