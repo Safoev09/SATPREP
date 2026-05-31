@@ -7,16 +7,16 @@ export default function UpgradePage() {
         <div className="text-xs text-accent uppercase tracking-[0.15em] font-semibold mb-2">
           Premium
         </div>
-        <h1 className="font-display text-4xl font-semibold text-coffee-900 dark:text-cream-50 mb-2">
+        <h1 className="font-display text-4xl font-semibold text-coffee-900 mb-2">
           Unlock everything
         </h1>
-        <p className="text-coffee-600 dark:text-cream-200/70 text-lg">
+        <p className="text-coffee-600 text-lg">
           Full access to every drill, mock, and explanation.
         </p>
       </div>
 
       {/* Premium features card */}
-      <div className="bg-gradient-to-br from-coffee-800 to-coffee-900 dark:from-midnight-50 dark:to-midnight-100 text-cream-100 rounded-3xl p-8 sm:p-10 mb-6">
+      <div className="bg-gradient-to-br from-coffee-800 to-coffee-900 text-cream-100 rounded-3xl p-8 sm:p-10 mb-6">
         <div className="text-xs text-cream-200/70 uppercase tracking-wider font-semibold mb-3">
           Everything you get
         </div>
@@ -40,39 +40,39 @@ export default function UpgradePage() {
       </div>
 
       {/* Private beta — contact for access */}
-      <div className="bg-cream-50 dark:bg-midnight-100 border border-coffee-700/15 dark:border-cream-200/8 rounded-3xl p-8">
+      <div className="bg-cream-50 border border-coffee-700/15 rounded-3xl p-8">
         <div className="flex items-start gap-4 mb-4">
           <div className="text-3xl shrink-0">🌱</div>
           <div>
-            <div className="font-display text-xl font-semibold text-coffee-900 dark:text-cream-50 mb-1">
+            <div className="font-display text-xl font-semibold text-coffee-900 mb-1">
               Currently in private beta
             </div>
-            <p className="text-sm text-coffee-700 dark:text-cream-200/80 leading-relaxed">
+            <p className="text-sm text-coffee-700 leading-relaxed">
               SATPeaK is in its early access phase. Premium access isn't open self-serve yet — we're working with students directly to make sure everything's perfect.
             </p>
           </div>
         </div>
-        <p className="text-sm text-coffee-700 dark:text-cream-200/80 leading-relaxed mb-5">
+        <p className="text-sm text-coffee-700 leading-relaxed mb-5">
           If you'd like premium access, please reach out and we'll talk you through how to join.
         </p>
 
         {/* Telegram contact info */}
-        <div className="bg-cream-100 dark:bg-midnight-50 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-5">
+        <div className="bg-cream-100 border border-coffee-700/10 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-full bg-[#27A7E7] grid place-items-center text-cream-50 text-xl shrink-0">
               ✈️
             </div>
             <div>
-              <div className="text-xs uppercase tracking-wider text-coffee-500 dark:text-cream-200/50 font-semibold">
+              <div className="text-xs uppercase tracking-wider text-coffee-500 font-semibold">
                 Contact on Telegram
               </div>
-              <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 text-lg leading-tight">
+              <div className="font-display font-semibold text-coffee-900 text-lg leading-tight">
                 @ASI_08_30
               </div>
             </div>
           </div>
-          <p className="text-sm text-coffee-700 dark:text-cream-200/80 leading-relaxed mb-4">
-            Message <span className="font-semibold text-coffee-900 dark:text-cream-50">@ASI_08_30</span> on Telegram and let them know you'd like premium access. They'll guide you through the next steps.
+          <p className="text-sm text-coffee-700 leading-relaxed mb-4">
+            Message <span className="font-semibold text-coffee-900">@ASI_08_30</span> on Telegram and let them know you'd like premium access. They'll guide you through the next steps.
           </p>
           <a
             href="https://t.me/ASI_08_30"
@@ -88,7 +88,7 @@ export default function UpgradePage() {
       <div className="mt-8 text-center">
         <Link
           href="/app"
-          className="text-coffee-600 dark:text-cream-200/70 hover:text-coffee-900 dark:hover:text-cream-50 text-sm transition"
+          className="text-coffee-600 hover:text-coffee-900 text-sm transition"
         >
           ← Back to dashboard
         </Link>

@@ -31,10 +31,10 @@ export default async function VocabListPage({
   if (!words || words.length === 0) {
     return (
       <div className="p-8 max-w-2xl">
-        <h1 className="font-display text-2xl text-coffee-900 dark:text-cream-50 mb-2">
+        <h1 className="font-display text-2xl text-coffee-900 mb-2">
           {list.title}
         </h1>
-        <p className="text-coffee-600 dark:text-cream-200/70">This list is empty.</p>
+        <p className="text-coffee-600">This list is empty.</p>
       </div>
     );
   }

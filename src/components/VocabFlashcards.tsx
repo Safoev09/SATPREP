@@ -66,11 +66,11 @@ export default function VocabFlashcards({
   return (
     <div className="min-h-[calc(100vh-65px)] flex flex-col">
       {/* Header */}
-      <div className="px-8 py-5 border-b border-coffee-700/10 dark:border-cream-200/8">
+      <div className="px-8 py-5 border-b border-coffee-700/10">
         <div className="flex items-center justify-between gap-4 max-w-3xl mx-auto">
           <Link
             href="/app/vocabulary"
-            className="text-sm text-coffee-600 dark:text-cream-200/70 hover:text-coffee-900 dark:hover:text-cream-50 transition"
+            className="text-sm text-coffee-600 hover:text-coffee-900 transition"
           >
             ← Back
           </Link>
@@ -78,14 +78,14 @@ export default function VocabFlashcards({
             <div className="text-xs text-accent uppercase tracking-wider font-semibold">
               {listTitle}
             </div>
-            <div className="text-xs text-coffee-500 dark:text-cream-200/50">
+            <div className="text-xs text-coffee-500">
               {idx + 1} of {words.length}
             </div>
           </div>
           <div className="w-12" />
         </div>
         <div className="max-w-3xl mx-auto mt-3">
-          <div className="h-1 bg-cream-100 dark:bg-midnight-50 rounded-full overflow-hidden">
+          <div className="h-1 bg-cream-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-accent rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -99,31 +99,31 @@ export default function VocabFlashcards({
         <div className="w-full max-w-xl">
           <div
             onClick={() => setRevealed(!revealed)}
-            className="bg-cream-50 dark:bg-midnight-100 border border-coffee-700/10 dark:border-cream-200/8 rounded-3xl p-10 cursor-pointer hover:shadow-lg transition-all duration-300 min-h-[280px] flex flex-col justify-center"
+            className="bg-cream-50 border border-coffee-700/10 rounded-3xl p-10 cursor-pointer hover:shadow-lg transition-all duration-300 min-h-[280px] flex flex-col justify-center"
           >
             <div className="text-center">
-              <div className="font-display text-4xl sm:text-5xl font-semibold text-coffee-900 dark:text-cream-50 mb-2">
+              <div className="font-display text-4xl sm:text-5xl font-semibold text-coffee-900 mb-2">
                 {current.word}
               </div>
               {current.part_of_speech && (
-                <div className="text-xs text-coffee-500 dark:text-cream-200/50 italic mb-6">
+                <div className="text-xs text-coffee-500 italic mb-6">
                   {current.part_of_speech}
                 </div>
               )}
 
               {revealed ? (
                 <div className="mt-4 animate-[fadeup_0.4s_ease-out]">
-                  <div className="text-lg text-coffee-700 dark:text-cream-200/90 leading-relaxed">
+                  <div className="text-lg text-coffee-700 leading-relaxed">
                     {current.definition}
                   </div>
                   {current.example && (
-                    <div className="mt-4 text-sm italic text-coffee-500 dark:text-cream-200/60 leading-relaxed">
+                    <div className="mt-4 text-sm italic text-coffee-500 leading-relaxed">
                       "{current.example}"
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-sm text-coffee-500 dark:text-cream-200/40 mt-6">
+                <div className="text-sm text-coffee-500 mt-6">
                   Tap to reveal definition
                 </div>
               )}
@@ -135,7 +135,7 @@ export default function VocabFlashcards({
             <button
               onClick={prev}
               disabled={idx === 0}
-              className="px-5 py-2.5 text-sm rounded-full bg-cream-100 dark:bg-midnight-50 text-coffee-800 dark:text-cream-200 hover:bg-cream-200 dark:hover:bg-midnight-50/80 disabled:opacity-30 transition"
+              className="px-5 py-2.5 text-sm rounded-full bg-cream-100 text-coffee-800 hover:bg-cream-200 disabled:opacity-30 transition"
             >
               ← Previous
             </button>
@@ -145,8 +145,8 @@ export default function VocabFlashcards({
               disabled={busy || savedSet.has(current.id)}
               className={`px-5 py-2.5 text-sm rounded-full transition-all ${
                 savedSet.has(current.id)
-                  ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300"
-                  : "bg-accent/15 dark:bg-accent/20 text-accent hover:scale-[1.02]"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-accent/15 text-accent hover:scale-[1.02]"
               } disabled:opacity-50`}
             >
               {savedSet.has(current.id) ? "✓ Saved" : "☆ Save to my words"}
@@ -155,7 +155,7 @@ export default function VocabFlashcards({
             <button
               onClick={next}
               disabled={isLast}
-              className="px-5 py-2.5 text-sm rounded-full bg-coffee-800 dark:bg-accent text-cream-50 hover:scale-[1.02] disabled:opacity-30 transition"
+              className="px-5 py-2.5 text-sm rounded-full bg-coffee-800 text-cream-50 hover:scale-[1.02] disabled:opacity-30 transition"
             >
               Next →
             </button>

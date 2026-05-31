@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase-client";
-import { useTheme } from "@/components/ThemeProvider";
 
 type NavItem = {
   href: string;
@@ -31,7 +30,6 @@ export default function StudentShell({
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
-  const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -94,20 +92,20 @@ export default function StudentShell({
     : userEmail[0]?.toUpperCase() ?? "U";
 
   return (
-    <div className="min-h-screen flex bg-cream-100 dark:bg-midnight-200 transition-colors duration-300">
+    <div className="min-h-screen flex bg-cream-100 transition-colors duration-300">
       {/* ===== SIDEBAR ===== */}
-      <aside className="w-64 bg-cream-50 dark:bg-midnight-100 border-r border-coffee-700/10 dark:border-cream-200/8 flex flex-col fixed h-screen transition-colors duration-300">
+      <aside className="w-64 bg-cream-50 border-r border-coffee-700/10 flex flex-col fixed h-screen transition-colors duration-300">
         {/* Logo */}
         <div className="px-5 py-5">
           <Link href="/app" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-coffee-800 dark:bg-accent text-cream-50 grid place-items-center font-display italic font-bold text-lg">
+            <div className="w-9 h-9 rounded-xl bg-coffee-800 text-cream-50 grid place-items-center font-display italic font-bold text-lg">
               S
             </div>
             <div>
-              <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 leading-none">
+              <div className="font-display font-semibold text-coffee-900 leading-none">
                 SATPeaK
               </div>
-              <div className="text-[10px] text-coffee-500 dark:text-cream-200/60 uppercase tracking-wider mt-1">
+              <div className="text-[10px] text-coffee-500 uppercase tracking-wider mt-1">
                 Digital SAT
               </div>
             </div>
@@ -119,7 +117,7 @@ export default function StudentShell({
           {sections.map((sec, i) => (
             <div key={i} className="mb-5">
               {sec.label && (
-                <div className="text-[11px] text-coffee-500 dark:text-cream-200/50 uppercase tracking-[0.12em] px-3 mb-2 font-semibold">
+                <div className="text-[11px] text-coffee-500 uppercase tracking-[0.12em] px-3 mb-2 font-semibold">
                   {sec.label}
                 </div>
               )}
@@ -135,8 +133,8 @@ export default function StudentShell({
                       href={item.href}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
                         active
-                          ? "bg-coffee-800 dark:bg-accent text-cream-50 font-medium shadow-sm"
-                          : "text-coffee-700 dark:text-cream-200/80 hover:bg-cream-200 dark:hover:bg-cream-200/5"
+                          ? "bg-coffee-800 text-cream-50 font-medium shadow-sm"
+                          : "text-coffee-700 hover:bg-cream-200"
                       }`}
                     >
                       <NavIcon name={item.icon} active={active} />
@@ -156,14 +154,14 @@ export default function StudentShell({
 
         {/* Streak banner */}
         <div className="p-3">
-          <div className="bg-gradient-to-br from-accent/15 to-cream-200 dark:from-accent/20 dark:to-midnight-50 rounded-2xl p-4 border border-accent/20 dark:border-accent/30">
+          <div className="bg-gradient-to-br from-accent/15 to-cream-200 rounded-2xl p-4 border border-accent/20">
             <div className="flex items-center gap-2.5">
               <div className="text-2xl">🔥</div>
               <div>
-                <div className="font-display font-semibold text-coffee-900 dark:text-cream-100 text-sm leading-tight">
+                <div className="font-display font-semibold text-coffee-900 text-sm leading-tight">
                   {streak > 0 ? `${streak}-day streak` : "Start your streak"}
                 </div>
-                <div className="text-[11px] text-coffee-600 dark:text-cream-200/70">
+                <div className="text-[11px] text-coffee-600">
                   {streak > 0 ? "Keep it alive today" : "Practise today to begin"}
                 </div>
               </div>
@@ -175,18 +173,18 @@ export default function StudentShell({
       {/* ===== MAIN COLUMN ===== */}
       <div className="flex-1 flex flex-col ml-64">
         {/* Top bar */}
-        <header className="bg-cream-50/80 dark:bg-midnight-100/80 backdrop-blur border-b border-coffee-700/10 dark:border-cream-200/8 px-8 py-3 flex justify-between items-center sticky top-0 z-20 transition-colors duration-300">
+        <header className="bg-cream-50/80 backdrop-blur border-b border-coffee-700/10 px-8 py-3 flex justify-between items-center sticky top-0 z-20 transition-colors duration-300">
           {/* XP + streak chips */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-cream-100 dark:bg-midnight-50 rounded-full px-3 py-1.5 border border-coffee-700/10 dark:border-cream-200/10">
+            <div className="flex items-center gap-1.5 bg-cream-100 rounded-full px-3 py-1.5 border border-coffee-700/10">
               <span className="text-sm">💎</span>
-              <span className="text-sm font-semibold text-coffee-800 dark:text-cream-100">{xp}</span>
-              <span className="text-xs text-coffee-500 dark:text-cream-200/60">XP</span>
+              <span className="text-sm font-semibold text-coffee-800">{xp}</span>
+              <span className="text-xs text-coffee-500">XP</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-cream-100 dark:bg-midnight-50 rounded-full px-3 py-1.5 border border-coffee-700/10 dark:border-cream-200/10">
+            <div className="flex items-center gap-1.5 bg-cream-100 rounded-full px-3 py-1.5 border border-coffee-700/10">
               <span className="text-sm">🔥</span>
-              <span className="text-sm font-semibold text-coffee-800 dark:text-cream-100">{streak}</span>
-              <span className="text-xs text-coffee-500 dark:text-cream-200/60">streak</span>
+              <span className="text-sm font-semibold text-coffee-800">{streak}</span>
+              <span className="text-xs text-coffee-500">streak</span>
             </div>
           </div>
 
@@ -194,48 +192,39 @@ export default function StudentShell({
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="flex items-center gap-2 hover:bg-cream-100 dark:hover:bg-midnight-50 rounded-full pl-2 pr-3 py-1.5 transition"
+              className="flex items-center gap-2 hover:bg-cream-100 rounded-full pl-2 pr-3 py-1.5 transition"
             >
-              <div className="w-8 h-8 rounded-full bg-coffee-700 dark:bg-accent text-cream-50 grid place-items-center font-display font-semibold text-sm">
+              <div className="w-8 h-8 rounded-full bg-coffee-700 text-cream-50 grid place-items-center font-display font-semibold text-sm">
                 {initials}
               </div>
-              <span className="text-sm text-coffee-800 dark:text-cream-100 font-medium hidden sm:block">
+              <span className="text-sm text-coffee-800 font-medium hidden sm:block">
                 {userName || "Account"}
               </span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-coffee-500 dark:text-cream-200/60">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-coffee-500">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </button>
 
             {menuOpen && (
               <div className="absolute right-0 top-full mt-2 w-60 glass rounded-2xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-coffee-700/10 dark:border-cream-200/10">
-                  <div className="text-sm font-medium text-coffee-800 dark:text-cream-100 truncate">
+                <div className="px-4 py-3 border-b border-coffee-700/10">
+                  <div className="text-sm font-medium text-coffee-800 truncate">
                     {userName || "Account"}
                   </div>
-                  <div className="text-xs text-coffee-500 dark:text-cream-200/60 truncate">{userEmail}</div>
+                  <div className="text-xs text-coffee-500 truncate">{userEmail}</div>
                 </div>
-                <Link href="/app/profile" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-coffee-700 dark:text-cream-200 hover:bg-cream-100/60 dark:hover:bg-cream-200/5 transition">
+                <Link href="/app/profile" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-coffee-700 hover:bg-cream-100/60 transition">
                   Profile
                 </Link>
-                <Link href="/app/settings" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-coffee-700 dark:text-cream-200 hover:bg-cream-100/60 dark:hover:bg-cream-200/5 transition">
+                <Link href="/app/settings" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-coffee-700 hover:bg-cream-100/60 transition">
                   Settings
                 </Link>
-                <button
-                  onClick={toggleTheme}
-                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-coffee-700 dark:text-cream-200 hover:bg-cream-100/60 dark:hover:bg-cream-200/5 transition"
-                >
-                  <span>{theme === "dark" ? "☀️ Light mode" : "🌙 Zen dark mode"}</span>
-                  <span className="text-[10px] uppercase tracking-wider text-coffee-500 dark:text-cream-200/50">
-                    {theme === "dark" ? "On" : "Off"}
-                  </span>
-                </button>
                 {!hasLifetimeAccess && (
-                  <Link href="/app/upgrade" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-accent font-medium hover:bg-cream-100/60 dark:hover:bg-cream-200/5 transition">
+                  <Link href="/app/upgrade" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-accent font-medium hover:bg-cream-100/60 transition">
                     ✨ Upgrade to premium
                   </Link>
                 )}
-                <button onClick={logout} className="block w-full text-left px-4 py-2.5 text-sm text-red-700 dark:text-red-400 hover:bg-cream-100/60 dark:hover:bg-cream-200/5 border-t border-coffee-700/10 dark:border-cream-200/10 transition">
+                <button onClick={logout} className="block w-full text-left px-4 py-2.5 text-sm text-red-700 hover:bg-cream-100/60 border-t border-coffee-700/10 transition">
                   Sign out
                 </button>
               </div>

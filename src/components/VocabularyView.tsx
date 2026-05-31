@@ -109,10 +109,10 @@ export default function VocabularyView({
           <div className="text-xs text-accent uppercase tracking-[0.15em] font-semibold mb-1">
             Vocabulary
           </div>
-          <h1 className="font-display text-4xl font-semibold text-coffee-900 dark:text-cream-50">
+          <h1 className="font-display text-4xl font-semibold text-coffee-900">
             Build your word power
           </h1>
-          <p className="text-coffee-600 dark:text-cream-200/70 mt-1.5">
+          <p className="text-coffee-600 mt-1.5">
             Save words from passages, drill pre-made lists, review with spaced repetition.
           </p>
         </div>
@@ -127,7 +127,7 @@ export default function VocabularyView({
           )}
           <button
             onClick={() => setAddOpen(true)}
-            className="bg-coffee-800 dark:bg-accent hover:bg-coffee-900 dark:hover:bg-accent/90 text-cream-50 px-5 py-2.5 rounded-full text-sm font-medium transition-all hover:scale-[1.02]"
+            className="bg-coffee-800 hover:bg-coffee-900 text-cream-50 px-5 py-2.5 rounded-full text-sm font-medium transition-all hover:scale-[1.02]"
           >
             + Add word
           </button>
@@ -136,11 +136,11 @@ export default function VocabularyView({
 
       {/* Pre-made lists */}
       <div className="mb-10">
-        <h2 className="font-display text-xl font-semibold text-coffee-900 dark:text-cream-50 mb-4">
+        <h2 className="font-display text-xl font-semibold text-coffee-900 mb-4">
           Pre-made lists
         </h2>
         {lists.length === 0 ? (
-          <div className="bg-cream-50 dark:bg-midnight-100 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-6 text-center text-sm text-coffee-600 dark:text-cream-200/60">
+          <div className="bg-cream-50 border border-coffee-700/10 rounded-2xl p-6 text-center text-sm text-coffee-600">
             No lists available yet. Run the vocabulary seed file to add Essential SAT 200.
           </div>
         ) : (
@@ -149,19 +149,19 @@ export default function VocabularyView({
               <Link
                 key={l.id}
                 href={`/app/vocabulary/${l.id}`}
-                className="group bg-cream-50 dark:bg-midnight-100 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-5 hover:scale-[1.01] hover:border-accent/40 transition-all"
+                className="group bg-cream-50 border border-coffee-700/10 rounded-2xl p-5 hover:scale-[1.01] hover:border-accent/40 transition-all"
               >
                 <div className="text-3xl mb-2">📘</div>
-                <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 mb-1">
+                <div className="font-display font-semibold text-coffee-900 mb-1">
                   {l.title}
                 </div>
                 {l.description && (
-                  <div className="text-xs text-coffee-600 dark:text-cream-200/60 mb-3 line-clamp-2">
+                  <div className="text-xs text-coffee-600 mb-3 line-clamp-2">
                     {l.description}
                   </div>
                 )}
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-coffee-500 dark:text-cream-200/50">
+                  <span className="text-coffee-500">
                     {listWordCounts[l.id] ?? 0} words
                   </span>
                   <span className="text-accent group-hover:translate-x-0.5 transition-transform">→</span>
@@ -175,21 +175,21 @@ export default function VocabularyView({
       {/* Personal saved words */}
       <div>
         <div className="flex items-baseline justify-between mb-4">
-          <h2 className="font-display text-xl font-semibold text-coffee-900 dark:text-cream-50">
+          <h2 className="font-display text-xl font-semibold text-coffee-900">
             Your saved words
           </h2>
-          <span className="text-sm text-coffee-500 dark:text-cream-200/50">
+          <span className="text-sm text-coffee-500">
             {words.length} total
           </span>
         </div>
 
         {words.length === 0 ? (
-          <div className="bg-cream-50 dark:bg-midnight-100 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-10 text-center">
+          <div className="bg-cream-50 border border-coffee-700/10 rounded-2xl p-10 text-center">
             <div className="text-4xl mb-2">📝</div>
-            <div className="font-display font-medium text-coffee-900 dark:text-cream-100 mb-1">
+            <div className="font-display font-medium text-coffee-900 mb-1">
               No saved words yet
             </div>
-            <p className="text-sm text-coffee-600 dark:text-cream-200/60 max-w-md mx-auto">
+            <p className="text-sm text-coffee-600 max-w-md mx-auto">
               Tip: while practising, double-click any word in a Reading passage to save it here.
               Or use the <span className="font-medium">+ Add word</span> button above.
             </p>
@@ -199,25 +199,25 @@ export default function VocabularyView({
             {words.map((w) => (
               <div
                 key={w.id}
-                className="bg-cream-50 dark:bg-midnight-100 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-4 group hover:shadow-sm transition-all"
+                className="bg-cream-50 border border-coffee-700/10 rounded-2xl p-4 group hover:shadow-sm transition-all"
               >
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <div className="font-display font-semibold text-coffee-900 dark:text-cream-50 text-lg">
+                  <div className="font-display font-semibold text-coffee-900 text-lg">
                     {w.word}
                   </div>
                   <button
                     onClick={() => handleDelete(w.id)}
-                    className="text-coffee-500 dark:text-cream-200/30 hover:text-red-600 text-xs opacity-0 group-hover:opacity-100 transition"
+                    className="text-coffee-500 hover:text-red-600 text-xs opacity-0 group-hover:opacity-100 transition"
                     title="Remove"
                   >
                     ✕
                   </button>
                 </div>
-                <div className="text-sm text-coffee-700 dark:text-cream-200/80 leading-snug mb-2">
+                <div className="text-sm text-coffee-700 leading-snug mb-2">
                   {w.definition}
                 </div>
                 {w.example && (
-                  <div className="text-xs italic text-coffee-500 dark:text-cream-200/50 leading-snug">
+                  <div className="text-xs italic text-coffee-500 leading-snug">
                     "{w.example}"
                   </div>
                 )}
@@ -228,7 +228,7 @@ export default function VocabularyView({
                       className={`h-1 flex-1 rounded-full ${
                         b <= w.box
                           ? "bg-accent"
-                          : "bg-cream-200 dark:bg-midnight-50"
+                          : "bg-cream-200"
                       }`}
                     />
                   ))}
@@ -242,14 +242,14 @@ export default function VocabularyView({
       {/* Add word modal */}
       {addOpen && (
         <div
-          className="fixed inset-0 bg-coffee-900/40 dark:bg-black/60 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-coffee-900/40 z-50 flex items-center justify-center p-4"
           onClick={() => setAddOpen(false)}
         >
           <div
             className="glass rounded-3xl p-6 max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-display text-xl font-semibold text-coffee-900 dark:text-cream-50 mb-4">
+            <h3 className="font-display text-xl font-semibold text-coffee-900 mb-4">
               Add a word
             </h3>
             <div className="space-y-3">
@@ -289,19 +289,19 @@ export default function VocabularyView({
                 />
               </div>
               {error && (
-                <div className="text-sm text-red-700 dark:text-red-400">{error}</div>
+                <div className="text-sm text-red-700">{error}</div>
               )}
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   onClick={() => setAddOpen(false)}
-                  className="px-4 py-2 text-sm text-coffee-700 dark:text-cream-200 hover:bg-cream-100/50 dark:hover:bg-cream-200/5 rounded-full"
+                  className="px-4 py-2 text-sm text-coffee-700 hover:bg-cream-100/50 rounded-full"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={busy}
-                  className="px-5 py-2 text-sm bg-coffee-800 dark:bg-accent text-cream-50 rounded-full hover:scale-[1.02] transition disabled:opacity-50"
+                  className="px-5 py-2 text-sm bg-coffee-800 text-cream-50 rounded-full hover:scale-[1.02] transition disabled:opacity-50"
                 >
                   {busy ? "Saving…" : "Save word"}
                 </button>

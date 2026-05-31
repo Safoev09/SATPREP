@@ -55,37 +55,37 @@ export default async function StudyPlanPage() {
         <div className="text-xs text-accent uppercase tracking-[0.15em] font-semibold mb-1">
           Your roadmap
         </div>
-        <h1 className="font-display text-4xl font-semibold text-coffee-900 dark:text-cream-50">
+        <h1 className="font-display text-4xl font-semibold text-coffee-900">
           Study Plan
         </h1>
-        <p className="text-coffee-600 dark:text-cream-200/70 mt-1.5">
+        <p className="text-coffee-600 mt-1.5">
           {plan.headline}
         </p>
       </div>
 
       {/* Phase context */}
       <div className="grid sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-cream-50 dark:bg-midnight-100 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-5">
-          <div className="text-xs text-coffee-500 dark:text-cream-200/50 uppercase tracking-wider mb-1">
+        <div className="bg-cream-50 border border-coffee-700/10 rounded-2xl p-5">
+          <div className="text-xs text-coffee-500 uppercase tracking-wider mb-1">
             Phase
           </div>
-          <div className="font-display text-lg font-semibold text-coffee-900 dark:text-cream-50">
+          <div className="font-display text-lg font-semibold text-coffee-900">
             {plan.phase}
           </div>
         </div>
-        <div className="bg-cream-50 dark:bg-midnight-100 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-5">
-          <div className="text-xs text-coffee-500 dark:text-cream-200/50 uppercase tracking-wider mb-1">
+        <div className="bg-cream-50 border border-coffee-700/10 rounded-2xl p-5">
+          <div className="text-xs text-coffee-500 uppercase tracking-wider mb-1">
             Days to exam
           </div>
-          <div className="font-display text-2xl font-semibold text-coffee-900 dark:text-cream-50">
+          <div className="font-display text-2xl font-semibold text-coffee-900">
             {days ?? "—"}
           </div>
         </div>
-        <div className="bg-cream-50 dark:bg-midnight-100 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-5">
-          <div className="text-xs text-coffee-500 dark:text-cream-200/50 uppercase tracking-wider mb-1">
+        <div className="bg-cream-50 border border-coffee-700/10 rounded-2xl p-5">
+          <div className="text-xs text-coffee-500 uppercase tracking-wider mb-1">
             Today's goal
           </div>
-          <div className="font-display text-lg font-semibold text-coffee-900 dark:text-cream-50">
+          <div className="font-display text-lg font-semibold text-coffee-900">
             {plan.tasks.length} tasks
           </div>
         </div>
@@ -93,7 +93,7 @@ export default async function StudyPlanPage() {
 
       {/* Today's tasks */}
       <div className="mb-8">
-        <h2 className="font-display text-xl font-semibold text-coffee-900 dark:text-cream-50 mb-4">
+        <h2 className="font-display text-xl font-semibold text-coffee-900 mb-4">
           Today's tasks
         </h2>
         <div className="space-y-3">
@@ -101,24 +101,24 @@ export default async function StudyPlanPage() {
             <Link
               key={i}
               href={t.href}
-              className="group flex items-center gap-4 bg-cream-50 dark:bg-midnight-100 border border-coffee-700/10 dark:border-cream-200/8 rounded-2xl p-5 hover:scale-[1.005] hover:border-accent/40 transition-all"
+              className="group flex items-center gap-4 bg-cream-50 border border-coffee-700/10 rounded-2xl p-5 hover:scale-[1.005] hover:border-accent/40 transition-all"
             >
-              <div className="text-xs font-semibold text-coffee-500 dark:text-cream-200/30 w-6">
+              <div className="text-xs font-semibold text-coffee-500 w-6">
                 {String(i + 1).padStart(2, "0")}
               </div>
               <div className="text-3xl">{t.icon}</div>
               <div className="flex-1">
-                <div className="font-medium text-coffee-900 dark:text-cream-50">
+                <div className="font-medium text-coffee-900">
                   {t.title}
                 </div>
-                <div className="text-sm text-coffee-600 dark:text-cream-200/60 mt-0.5">
+                <div className="text-sm text-coffee-600 mt-0.5">
                   {t.subtitle}
                 </div>
               </div>
-              <div className="text-xs text-coffee-500 dark:text-cream-200/50 bg-cream-100 dark:bg-midnight-50 px-3 py-1 rounded-full whitespace-nowrap">
+              <div className="text-xs text-coffee-500 bg-cream-100 px-3 py-1 rounded-full whitespace-nowrap">
                 {t.duration}
               </div>
-              <div className="text-coffee-500 dark:text-cream-200/30 group-hover:text-accent group-hover:translate-x-0.5 transition">
+              <div className="text-coffee-500 group-hover:text-accent group-hover:translate-x-0.5 transition">
                 →
               </div>
             </Link>
@@ -131,7 +131,7 @@ export default async function StudyPlanPage() {
         <div className="text-xs text-accent uppercase tracking-wider font-semibold mb-2">
           Why this plan
         </div>
-        <p className="text-sm text-coffee-700 dark:text-cream-200/80 leading-relaxed">
+        <p className="text-sm text-coffee-700 leading-relaxed">
           {plan.rationale}
         </p>
       </div>
