@@ -42,11 +42,14 @@ export default async function PracticePage({
   let timeLimitSeconds: number | null = null;
 
   if (isModule && session.test_id) {
-    // Module from an admin-built test: load its questions in order
+    // Module from an admin-built test: load its M1 questions in order.
+    // (Adaptive M2 for standalone modules is coming in a future update — for now,
+    //  the module slot from older tests and `module_m1` from new tests both work.)
     const { data: tqRows } = await supabase
       .from("test_questions")
-      .select("question_id, position")
+      .select("question_id, position, slot")
       .eq("test_id", session.test_id)
+      .in("slot", ["module", "module_m1"])
       .order("position", { ascending: true });
 
     const orderedIds = (tqRows ?? []).map((r) => r.question_id);

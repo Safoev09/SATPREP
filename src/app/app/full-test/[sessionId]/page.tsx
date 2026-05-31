@@ -29,7 +29,13 @@ export default async function FullTestRunPage({
   }
   if (!session.test_id) redirect("/app/full-test");
 
-  // Load the test's questions, grouped by slot, in order
+  // Load the test (for cutoffs) + its questions
+  const { data: test } = await supabase
+    .from("tests")
+    .select("rw_hard_cutoff, math_hard_cutoff")
+    .eq("id", session.test_id)
+    .single();
+
   const { data: tqRows } = await supabase
     .from("test_questions")
     .select("question_id, slot, position")
@@ -43,7 +49,9 @@ export default async function FullTestRunPage({
       .from("questions")
       .select("*")
       .in("id", allIds);
-    (qRows ?? []).forEach((q) => { questionsById[q.id] = q as Question; });
+    (qRows ?? []).forEach((q) => {
+      questionsById[q.id] = q as Question;
+    });
   }
 
   const slotQuestions = (slot: string): Question[] =>
@@ -53,11 +61,26 @@ export default async function FullTestRunPage({
       .filter(Boolean);
 
   const rwM1 = slotQuestions("rw_m1");
-  const rwM2 = slotQuestions("rw_m2");
+  // Adaptive: prefer easy/hard tiered slots; fall back to legacy rw_m2 if present
+  const rwM2Easy = slotQuestions("rw_m2_easy");
+  const rwM2Hard = slotQuestions("rw_m2_hard");
+  const rwM2Legacy = slotQuestions("rw_m2");
   const mathM1 = slotQuestions("math_m1");
-  const mathM2 = slotQuestions("math_m2");
+  const mathM2Easy = slotQuestions("math_m2_easy");
+  const mathM2Hard = slotQuestions("math_m2_hard");
+  const mathM2Legacy = slotQuestions("math_m2");
 
-  if (rwM1.length === 0 && rwM2.length === 0 && mathM1.length === 0 && mathM2.length === 0) {
+  const hasAnyQuestions =
+    rwM1.length > 0 ||
+    rwM2Easy.length > 0 ||
+    rwM2Hard.length > 0 ||
+    rwM2Legacy.length > 0 ||
+    mathM1.length > 0 ||
+    mathM2Easy.length > 0 ||
+    mathM2Hard.length > 0 ||
+    mathM2Legacy.length > 0;
+
+  if (!hasAnyQuestions) {
     return (
       <div className="p-10 max-w-2xl">
         <div className="bg-cream-50 border border-coffee-700/10 rounded-2xl p-10 text-center">
@@ -80,7 +103,10 @@ export default async function FullTestRunPage({
   }
 
   // Load passages
-  const allQ = [...rwM1, ...rwM2, ...mathM1, ...mathM2];
+  const allQ = [
+    ...rwM1, ...rwM2Easy, ...rwM2Hard, ...rwM2Legacy,
+    ...mathM1, ...mathM2Easy, ...mathM2Hard, ...mathM2Legacy,
+  ];
   const passageIds = Array.from(
     new Set(allQ.map((q) => q.passage_id).filter((id): id is number => id !== null))
   );
@@ -100,9 +126,13 @@ export default async function FullTestRunPage({
       sessionId={sessionId}
       passages={passages}
       rwModule1={rwM1}
-      rwModule2={rwM2}
+      rwModule2Easy={rwM2Easy.length > 0 ? rwM2Easy : rwM2Legacy}
+      rwModule2Hard={rwM2Hard.length > 0 ? rwM2Hard : rwM2Legacy}
       mathModule1={mathM1}
-      mathModule2={mathM2}
+      mathModule2Easy={mathM2Easy.length > 0 ? mathM2Easy : mathM2Legacy}
+      mathModule2Hard={mathM2Hard.length > 0 ? mathM2Hard : mathM2Legacy}
+      rwHardCutoff={test?.rw_hard_cutoff ?? 70}
+      mathHardCutoff={test?.math_hard_cutoff ?? 70}
     />
   );
 }

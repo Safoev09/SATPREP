@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-client";
 import { getSkillLabel } from "@/lib/skills";
-import { FULL_TEST_SLOTS, MODULE_SLOT, type Test } from "@/lib/tests";
+import { FULL_TEST_SLOTS, MODULE_TEST_SLOTS, type Test } from "@/lib/tests";
 import type { Question } from "@/lib/skills";
 
 type PickedQuestion = { question_id: number; slot: string; position: number };
@@ -34,6 +34,9 @@ export default function TestBuilder({
     existing?.visibility ?? "premium"
   );
   const [isPublished, setIsPublished] = useState(existing?.is_published ?? false);
+  // Adaptive cutoffs (% on M1 above which student goes to hard M2)
+  const [rwHardCutoff, setRwHardCutoff] = useState<number>(existing?.rw_hard_cutoff ?? 70);
+  const [mathHardCutoff, setMathHardCutoff] = useState<number>(existing?.math_hard_cutoff ?? 70);
 
   // picks: slot -> ordered list of question ids
   const initialPicks: Record<string, number[]> = {};
@@ -46,7 +49,7 @@ export default function TestBuilder({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeSlot, setActiveSlot] = useState<string>(
-    existing?.test_type === "full" ? "rw_m1" : MODULE_SLOT
+    existing?.test_type === "full" ? "rw_m1" : "module_m1"
   );
   const [search, setSearch] = useState("");
 
@@ -54,7 +57,7 @@ export default function TestBuilder({
   const slots =
     testType === "full"
       ? FULL_TEST_SLOTS.map((s) => ({ id: s.id, label: s.label, section: s.section }))
-      : [{ id: MODULE_SLOT, label: "Module questions", section }];
+      : MODULE_TEST_SLOTS.map((s) => ({ id: s.id, label: s.label, section }));
 
   // Which section the active slot expects
   const activeSlotSection =
@@ -130,6 +133,8 @@ export default function TestBuilder({
       difficulty,
       visibility,
       is_published: isPublished,
+      rw_hard_cutoff: rwHardCutoff,
+      math_hard_cutoff: mathHardCutoff,
       created_by: user.id,
     };
 
@@ -227,7 +232,7 @@ export default function TestBuilder({
             <select value={testType} onChange={(e) => {
               const t = e.target.value as "module" | "full";
               setTestType(t);
-              setActiveSlot(t === "full" ? "rw_m1" : MODULE_SLOT);
+              setActiveSlot(t === "full" ? "rw_m1" : "module_m1");
             }}>
               <option value="module">Single module</option>
               <option value="full">Full SAT (4 modules)</option>
@@ -260,6 +265,42 @@ export default function TestBuilder({
               <option value="free">Free — everyone</option>
               <option value="premium">Premium — paid users only</option>
             </select>
+          </div>
+        </div>
+
+        {/* Adaptive cutoffs */}
+        <div className="bg-cream-100 border border-coffee-700/10 rounded-2xl p-5">
+          <div className="text-sm font-medium text-coffee-900 mb-1">
+            Adaptive routing — Module 2 difficulty
+          </div>
+          <p className="text-xs text-coffee-600 mb-4 leading-relaxed">
+            On the real Digital SAT, Module 2 difficulty depends on Module 1 performance. Set the cutoff: a student who gets at least this % correct on Module 1 will get the HARD Module 2; below it, the EASY Module 2.
+          </p>
+          <div className={`grid ${testType === "full" ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
+            {(testType === "full" || section === "reading_writing") && (
+              <div>
+                <label>R&W hard-M2 cutoff (% correct on R&W M1)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={rwHardCutoff}
+                  onChange={(e) => setRwHardCutoff(Math.max(0, Math.min(100, Number(e.target.value))))}
+                />
+              </div>
+            )}
+            {(testType === "full" || section === "math") && (
+              <div>
+                <label>Math hard-M2 cutoff (% correct on Math M1)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={mathHardCutoff}
+                  onChange={(e) => setMathHardCutoff(Math.max(0, Math.min(100, Number(e.target.value))))}
+                />
+              </div>
+            )}
           </div>
         </div>
 

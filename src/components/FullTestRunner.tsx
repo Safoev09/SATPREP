@@ -19,24 +19,40 @@ export default function FullTestRunner({
   sessionId,
   passages,
   rwModule1,
-  rwModule2,
+  rwModule2Easy,
+  rwModule2Hard,
   mathModule1,
-  mathModule2,
+  mathModule2Easy,
+  mathModule2Hard,
+  rwHardCutoff,
+  mathHardCutoff,
 }: {
   sessionId: number;
   passages: Record<number, string>;
   rwModule1: Question[];
-  rwModule2: Question[];
+  rwModule2Easy: Question[];
+  rwModule2Hard: Question[];
   mathModule1: Question[];
-  mathModule2: Question[];
+  mathModule2Easy: Question[];
+  mathModule2Hard: Question[];
+  rwHardCutoff: number;
+  mathHardCutoff: number;
 }) {
   const router = useRouter();
   const supabase = createClient();
 
+  // Tiers chosen mid-test based on M1 performance
+  const [rwM2Tier, setRwM2Tier] = useState<"easy" | "hard">("easy");
+  const [mathM2Tier, setMathM2Tier] = useState<"easy" | "hard">("easy");
+
+  // The chosen Module 2 arrays
+  const rwModule2 = rwM2Tier === "hard" ? rwModule2Hard : rwModule2Easy;
+  const mathModule2 = mathM2Tier === "hard" ? mathModule2Hard : mathModule2Easy;
+
   // Skip empty modules gracefully — find the first stage that has questions
   const firstStage: Stage =
     rwModule1.length > 0 ? "rw_m1"
-    : rwModule2.length > 0 ? "rw_m2"
+    : (rwModule2Easy.length > 0 || rwModule2Hard.length > 0) ? "rw_m2"
     : mathModule1.length > 0 ? "math_m1"
     : "math_m2";
 
@@ -114,7 +130,13 @@ export default function FullTestRunner({
   const advanceStage = useCallback(() => {
     // Move to the next non-empty stage
     if (stage === "rw_m1") {
-      if (rwModule2.length > 0) {
+      // Decide which Module 2 tier based on M1 performance
+      const m1Correct = countCorrect(rwModule1, rwM1Answers);
+      const m1Pct = rwModule1.length > 0 ? (m1Correct / rwModule1.length) * 100 : 0;
+      const tier: "easy" | "hard" = m1Pct >= rwHardCutoff ? "hard" : "easy";
+      setRwM2Tier(tier);
+      const nextM2 = tier === "hard" ? rwModule2Hard : rwModule2Easy;
+      if (nextM2.length > 0) {
         setStage("rw_m2"); setCurrent(0); setSecondsLeft(RW_MODULE_MINUTES * 60);
       } else {
         setStage("break");
@@ -122,7 +144,13 @@ export default function FullTestRunner({
     } else if (stage === "rw_m2") {
       setStage("break");
     } else if (stage === "math_m1") {
-      if (mathModule2.length > 0) {
+      // Decide Math M2 tier based on Math M1 performance
+      const m1Correct = countCorrect(mathModule1, mathM1Answers);
+      const m1Pct = mathModule1.length > 0 ? (m1Correct / mathModule1.length) * 100 : 0;
+      const tier: "easy" | "hard" = m1Pct >= mathHardCutoff ? "hard" : "easy";
+      setMathM2Tier(tier);
+      const nextM2 = tier === "hard" ? mathModule2Hard : mathModule2Easy;
+      if (nextM2.length > 0) {
         setStage("math_m2"); setCurrent(0); setSecondsLeft(MATH_MODULE_MINUTES * 60);
       } else {
         submitTest();
@@ -131,7 +159,7 @@ export default function FullTestRunner({
       submitTest();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage, rwModule2, mathModule2]);
+  }, [stage, rwModule1, rwModule2Easy, rwModule2Hard, mathModule1, mathModule2Easy, mathModule2Hard, rwM1Answers, mathM1Answers, rwHardCutoff, mathHardCutoff]);
 
   const startMath = () => {
     if (mathModule1.length > 0) {
@@ -155,10 +183,9 @@ export default function FullTestRunner({
     const mathCorrect = countCorrect(mathModule1, mathM1Answers) + countCorrect(mathModule2, mathM2Answers);
     const mathTotal = mathModule1.length + mathModule2.length;
 
-    // Module 2 difficulty affects ceiling. We treat an admin full test's Module 2
-    // as the "hard" path (full 800 reachable) since the admin curated it.
-    const rwScore = sectionScore(rwCorrect, rwTotal, "hard");
-    const mathScore = sectionScore(mathCorrect, mathTotal, "hard");
+    // Module 2 difficulty affects ceiling — use the actual tier the student got
+    const rwScore = sectionScore(rwCorrect, rwTotal, rwM2Tier);
+    const mathScore = sectionScore(mathCorrect, mathTotal, mathM2Tier);
     const totalScore = rwScore + mathScore;
 
     const allRows: any[] = [];
@@ -200,6 +227,8 @@ export default function FullTestRunner({
         total_questions: rwTotal + mathTotal,
         correct_count: rwCorrect + mathCorrect,
         scaled_score: totalScore,
+        rw_m2_tier: rwM2Tier,
+        math_m2_tier: mathM2Tier,
         completed_at: new Date().toISOString(),
       })
       .eq("id", sessionId);
