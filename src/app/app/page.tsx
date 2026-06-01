@@ -32,11 +32,14 @@ export default async function DashboardPage() {
   // Score history (modules + full tests with a scaled score)
   const scoredSessions = (recentSessions ?? []).filter((s) => s.scaled_score != null);
 
-  // Accuracy by skill for the radar
+  // Accuracy by skill for the radar — cap at most-recent 500 answers
+  // (keeps the dashboard snappy as users practice more)
   const { data: answers } = await supabase
     .from("answers")
     .select("is_correct, questions(skill, section)")
-    .eq("user_id", profile.id);
+    .eq("user_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   const bySkill: Record<string, { correct: number; total: number; section: string }> = {};
   (answers ?? []).forEach((a: any) => {

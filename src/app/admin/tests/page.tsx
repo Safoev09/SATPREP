@@ -9,6 +9,8 @@ export default async function TestsListPage() {
     .select("*")
     .order("created_at", { ascending: false });
 
+  const draftCount = (tests ?? []).filter((t) => !t.is_published).length;
+
   return (
     <div className="p-10 max-w-5xl">
       <div className="flex justify-between items-center mb-6">
@@ -27,6 +29,19 @@ export default async function TestsListPage() {
           + Create test
         </Link>
       </div>
+
+      {draftCount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="text-xl">⚠️</div>
+            <div className="text-sm text-amber-900 leading-relaxed">
+              <span className="font-semibold">{draftCount} draft test{draftCount === 1 ? "" : "s"} not visible to students.</span>{" "}
+              Tests must be marked <span className="font-medium">Published</span> to appear in Mock Exams or Modules.
+              Click Edit → check the "Published" box → Save.
+            </div>
+          </div>
+        </div>
+      )}
 
       {tests && tests.length > 0 ? (
         <div className="bg-cream-50 border border-coffee-700/10 rounded-2xl overflow-hidden">

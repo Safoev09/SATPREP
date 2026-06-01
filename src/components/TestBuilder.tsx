@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-client";
-import { getSkillLabel } from "@/lib/skills";
+import { getSkillLabel, SKILLS } from "@/lib/skills";
 import { FULL_TEST_SLOTS, MODULE_TEST_SLOTS, type Test } from "@/lib/tests";
 import type { Question } from "@/lib/skills";
 
@@ -33,7 +33,7 @@ export default function TestBuilder({
   const [visibility, setVisibility] = useState<"free" | "premium">(
     existing?.visibility ?? "premium"
   );
-  const [isPublished, setIsPublished] = useState(existing?.is_published ?? false);
+  const [isPublished, setIsPublished] = useState(existing?.is_published ?? true);
   // Adaptive cutoffs (% on M1 above which student goes to hard M2)
   const [rwHardCutoff, setRwHardCutoff] = useState<number>(existing?.rw_hard_cutoff ?? 70);
   const [mathHardCutoff, setMathHardCutoff] = useState<number>(existing?.math_hard_cutoff ?? 70);
@@ -52,6 +52,8 @@ export default function TestBuilder({
     existing?.test_type === "full" ? "rw_m1" : "module_m1"
   );
   const [search, setSearch] = useState("");
+  const [skillFilter, setSkillFilter] = useState<string>("");
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("");
 
   // Slots depend on test type
   const slots =
@@ -70,6 +72,8 @@ export default function TestBuilder({
   const candidateQuestions = allQuestions
     .filter((q) => q.section === activeSlotSection)
     .filter((q) => !pickedInSlot.includes(q.id))
+    .filter((q) => (skillFilter ? q.skill === skillFilter : true))
+    .filter((q) => (difficultyFilter ? q.difficulty === difficultyFilter : true))
     .filter((q) =>
       search
         ? q.prompt.toLowerCase().includes(search.toLowerCase()) ||
@@ -304,7 +308,13 @@ export default function TestBuilder({
           </div>
         </div>
 
-        <label className="flex items-center gap-3 cursor-pointer">
+        <label
+          className={`flex items-center gap-3 cursor-pointer border rounded-2xl p-4 transition-all ${
+            isPublished
+              ? "bg-green-50 border-green-200"
+              : "bg-amber-50 border-amber-200"
+          }`}
+        >
           <input
             type="checkbox"
             checked={isPublished}
@@ -312,8 +322,12 @@ export default function TestBuilder({
             style={{ width: "auto" }}
             className="w-5 h-5"
           />
-          <span className="text-sm text-coffee-800">
-            <strong>Publish</strong> — show this test to students
+          <span className={`text-sm ${isPublished ? "text-green-900" : "text-amber-900"}`}>
+            <strong>{isPublished ? "✓ Published" : "⚠️ Draft (hidden from students)"}</strong>
+            {" — "}
+            {isPublished
+              ? "this test is visible to students in Mock Exams / Modules."
+              : "uncheck to keep as draft. Students CANNOT see draft tests."}
           </span>
         </label>
       </div>
@@ -323,6 +337,27 @@ export default function TestBuilder({
         <h2 className="font-display font-semibold text-lg text-coffee-900 mb-3">
           Pick questions ({totalPicked} added)
         </h2>
+
+        {/* SAT module skill-order guide */}
+        {activeSlotSection === "reading_writing" && (
+          <div className="bg-cream-100 border border-coffee-700/10 rounded-xl p-3 mb-4 text-xs">
+            <div className="font-medium text-coffee-800 mb-1.5">
+              💡 Real Digital SAT R&W skill order (per module ≈ 27 questions)
+            </div>
+            <div className="grid sm:grid-cols-2 gap-x-3 gap-y-1 text-coffee-700">
+              <div>Q1–8 ≈ <SkillJump label="Words in Context" id="words_in_context" onPick={setSkillFilter} /></div>
+              <div>Q9–11 ≈ <SkillJump label="Text Structure" id="text_structure" onPick={setSkillFilter} /></div>
+              <div>Q12–13 ≈ <SkillJump label="Central Ideas" id="central_ideas" onPick={setSkillFilter} /></div>
+              <div>Q14 ≈ <SkillJump label="Inferences" id="inferences" onPick={setSkillFilter} /></div>
+              <div>Q15–22 ≈ <SkillJump label="Std. English Conventions" id="boundaries" onPick={setSkillFilter} /></div>
+              <div>Q23–24 ≈ <SkillJump label="Transitions" id="transitions" onPick={setSkillFilter} /></div>
+              <div className="sm:col-span-2">Q25–27 ≈ <SkillJump label="Rhetorical Synthesis" id="rhetorical_synthesis" onPick={setSkillFilter} /></div>
+            </div>
+            <div className="text-[10px] text-coffee-500 mt-1.5 italic">
+              Click any skill above to filter the picker. This order is approximate — the real test varies slightly.
+            </div>
+          </div>
+        )}
 
         {/* Slot tabs */}
         <div className="flex gap-2 mb-4 flex-wrap">
@@ -377,20 +412,67 @@ export default function TestBuilder({
 
           {/* RIGHT: available questions to add */}
           <div>
-            <div className="text-xs text-coffee-600 uppercase tracking-wider mb-2 font-medium">
-              Available {activeSlotSection === "math" ? "Math" : "R&W"} questions
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs text-coffee-600 uppercase tracking-wider font-medium">
+                Available {activeSlotSection === "math" ? "Math" : "R&W"} questions
+              </div>
+              <div className="text-[10px] text-coffee-500">
+                {candidateQuestions.length} match
+              </div>
             </div>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by prompt or skill…"
-              className="mb-2"
-            />
+
+            {/* Filter bar */}
+            <div className="bg-cream-100 border border-coffee-700/10 rounded-xl p-2.5 mb-2 space-y-2">
+              <div className="flex gap-2">
+                <select
+                  value={skillFilter}
+                  onChange={(e) => setSkillFilter(e.target.value)}
+                  style={{ padding: "0.4rem 0.6rem", fontSize: 12, flex: 1 }}
+                >
+                  <option value="">All skills</option>
+                  {Object.entries(SKILLS[activeSlotSection === "math" ? "math" : "reading_writing"]).map(
+                    ([groupLabel, items]) => (
+                      <optgroup key={groupLabel} label={groupLabel}>
+                        {(items as { id: string; label: string }[]).map((s) => (
+                          <option key={s.id} value={s.id}>{s.label}</option>
+                        ))}
+                      </optgroup>
+                    )
+                  )}
+                </select>
+                <select
+                  value={difficultyFilter}
+                  onChange={(e) => setDifficultyFilter(e.target.value)}
+                  style={{ padding: "0.4rem 0.6rem", fontSize: 12, width: 110 }}
+                >
+                  <option value="">Any diff.</option>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search prompt text…"
+                style={{ padding: "0.4rem 0.6rem", fontSize: 12 }}
+              />
+              {(skillFilter || difficultyFilter || search) && (
+                <button
+                  type="button"
+                  onClick={() => { setSkillFilter(""); setDifficultyFilter(""); setSearch(""); }}
+                  className="text-[11px] text-accent hover:underline"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+
             <div className="space-y-1.5 max-h-96 overflow-y-auto">
               {candidateQuestions.length === 0 ? (
                 <div className="text-sm text-coffee-600 bg-cream-100 rounded-lg p-4">
-                  No matching questions. Add more in the Question Bank, or clear the search.
+                  No matching questions. Try different filters, or add more questions in the Question Bank.
                 </div>
               ) : (
                 candidateQuestions.map((q) => (
@@ -445,5 +527,17 @@ export default function TestBuilder({
         </div>
       </div>
     </div>
+  );
+}
+
+function SkillJump({ label, id, onPick }: { label: string; id: string; onPick: (id: string) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onPick(id)}
+      className="text-accent hover:underline font-medium"
+    >
+      {label}
+    </button>
   );
 }
