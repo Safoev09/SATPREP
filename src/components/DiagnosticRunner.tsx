@@ -250,7 +250,6 @@ export default function DiagnosticRunner({
       <ExamShield
         mode="strict"
         threshold={2}
-        active={phase !== "intro" && phase !== "submitting" && phase !== "break"}
         onThresholdReached={() => submitDiagnostic()}
       />
     <div className="min-h-screen flex flex-col bg-cream-50">

@@ -306,11 +306,10 @@ export default function FullTestRunner({
       <ExamShield
         mode="strict"
         threshold={2}
-        active={stage !== "submitting" && stage !== "break"}
         onViolation={(_v, all) => setViolations(all)}
         onThresholdReached={() => {
           // Auto-submit when 2 violations hit
-          if (stage !== "submitting") submitTest();
+          submitTest();
         }}
       />
     <div className="min-h-screen flex flex-col bg-cream-50">
