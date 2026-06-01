@@ -22,6 +22,7 @@ export default function AdminShell({
     { href: "/admin/questions", label: "Question Bank", icon: "📚" },
     { href: "/admin/questions/new", label: "Add Question", icon: "➕" },
     { href: "/admin/tests", label: "Tests", icon: "📝" },
+    { href: "/admin/vocabulary", label: "Vocabulary", icon: "🏔️" },
     { href: "/admin/students", label: "Students", icon: "👥" },
     { href: "/admin/upload", label: "Upload PDF", icon: "📄" },
   ];
