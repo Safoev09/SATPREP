@@ -9,6 +9,7 @@ import RichText from "@/components/RichText";
 import CalculatorPanel from "@/components/CalculatorPanel";
 import ReferencePanel from "@/components/ReferencePanel";
 import { RW_MODULE_MINUTES, MATH_MODULE_MINUTES, sectionScore } from "@/lib/sat-scoring";
+import ExamShield from "@/components/ExamShield";
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 
@@ -69,6 +70,7 @@ export default function FullTestRunner({
   const [rwM2Answers, setRwM2Answers] = useState<ModuleAnswers>({});
   const [mathM1Answers, setMathM1Answers] = useState<ModuleAnswers>({});
   const [mathM2Answers, setMathM2Answers] = useState<ModuleAnswers>({});
+  const [violations, setViolations] = useState<any[]>([]);
 
   const activeQuestions: Question[] =
     stage === "rw_m1" ? rwModule1
@@ -229,6 +231,7 @@ export default function FullTestRunner({
         scaled_score: totalScore,
         rw_m2_tier: rwM2Tier,
         math_m2_tier: mathM2Tier,
+        violations: violations.length > 0 ? violations : null,
         completed_at: new Date().toISOString(),
       })
       .eq("id", sessionId);
@@ -299,6 +302,17 @@ export default function FullTestRunner({
   const answeredCount = activeQuestions.filter((qq) => activeAnswers[qq.id] != null).length;
 
   return (
+    <>
+      <ExamShield
+        mode="strict"
+        threshold={2}
+        active={stage !== "submitting" && stage !== "break"}
+        onViolation={(_v, all) => setViolations(all)}
+        onThresholdReached={() => {
+          // Auto-submit when 2 violations hit
+          if (stage !== "submitting") submitTest();
+        }}
+      />
     <div className="min-h-screen flex flex-col bg-cream-50">
       <header className="border-b border-coffee-700/15 bg-cream-100 px-6 py-3 flex items-center justify-between">
         <span className="font-display font-semibold text-coffee-900">{moduleLabel}</span>
@@ -433,5 +447,6 @@ export default function FullTestRunner({
       {showCalc && <CalculatorPanel onClose={() => setShowCalc(false)} />}
       {showRef && <ReferencePanel onClose={() => setShowRef(false)} />}
     </div>
+    </>
   );
 }

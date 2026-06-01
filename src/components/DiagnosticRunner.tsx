@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase-client";
 import { BlockMath } from "react-katex";
 import type { Question } from "@/lib/skills";
 import RichText from "@/components/RichText";
+import ExamShield from "@/components/ExamShield";
 
 const LETTERS = ["A", "B", "C", "D"] as const;
 const SECTION_SECONDS = 15 * 60; // 15 minutes per section
@@ -245,6 +246,13 @@ export default function DiagnosticRunner({
   const answeredCount = activeQuestions.filter((qq) => answers[qq.id] != null).length;
 
   return (
+    <>
+      <ExamShield
+        mode="strict"
+        threshold={2}
+        active={phase !== "intro" && phase !== "submitting" && phase !== "break"}
+        onThresholdReached={() => submitDiagnostic()}
+      />
     <div className="min-h-screen flex flex-col bg-cream-50">
       {/* Top bar */}
       <header className="border-b border-coffee-700/15 bg-cream-100 px-6 py-3 flex items-center justify-between">
@@ -363,5 +371,6 @@ export default function DiagnosticRunner({
         )}
       </footer>
     </div>
+    </>
   );
 }

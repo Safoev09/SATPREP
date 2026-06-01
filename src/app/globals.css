@@ -68,3 +68,31 @@ button { font-family: inherit; cursor: pointer; }
 .option-glow {
   animation: optionGlow 2.4s ease-in-out infinite;
 }
+
+/* ===== Exam Mode (shell sidebar/header hidden when ExamShield is active) =====
+   Only targets elements explicitly marked data-shell="true" so headers
+   INSIDE the runners (PracticeRunner / FullTestRunner / DiagnosticRunner)
+   remain visible. */
+body.exam-mode [data-shell="true"] {
+  display: none !important;
+}
+/* StudentShell wraps content in a div with class "ml-64". Remove that offset
+   so the test content takes the full width. */
+body.exam-mode .ml-64 {
+  margin-left: 0 !important;
+}
+body.exam-mode {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+/* Re-enable selection on input/textarea so students can still type SPR answers */
+body.exam-mode input,
+body.exam-mode textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+@keyframes fadeup {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

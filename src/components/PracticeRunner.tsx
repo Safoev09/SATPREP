@@ -9,6 +9,7 @@ import { getSkillLabel } from "@/lib/skills";
 import RichText from "@/components/RichText";
 import CalculatorPanel from "@/components/CalculatorPanel";
 import ReferencePanel from "@/components/ReferencePanel";
+import ExamShield from "@/components/ExamShield";
 
 type AnswerState = {
   selected: string | null;       // "A"/"B"/"C"/"D" or typed SPR value
@@ -57,6 +58,7 @@ export default function PracticeRunner({
   const [showCalc, setShowCalc] = useState(false);
   const [showRef, setShowRef] = useState(false);
   const [showNav, setShowNav] = useState(false);
+  const [violations, setViolations] = useState<any[]>([]);
   const [timerHidden, setTimerHidden] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [finishing, setFinishing] = useState(false);
@@ -201,6 +203,7 @@ export default function PracticeRunner({
         correct_count: correctCount,
         scaled_score: scaledScore,
         time_spent_seconds: elapsed,
+        violations: violations.length > 0 ? violations : null,
         completed_at: new Date().toISOString(),
       })
       .eq("id", sessionId);
@@ -229,6 +232,18 @@ export default function PracticeRunner({
   const showResult = practiceMode === "practice" && a.submitted;
 
   return (
+    <>
+      <ExamShield
+        mode={mode === "module" ? "strict" : "focus"}
+        threshold={2}
+        onViolation={(_v, all) => setViolations(all)}
+        onThresholdReached={() => {
+          // For modules, auto-submit. For drills (focus mode), just keep warning.
+          if (mode === "module") {
+            submitPractice();
+          }
+        }}
+      />
     <div className="min-h-screen flex flex-col bg-cream-50">
       {/* ===== TOP BAR ===== */}
       <header className="border-b border-coffee-700/15 bg-cream-100 px-6 py-3 flex items-center justify-between">
@@ -560,6 +575,7 @@ export default function PracticeRunner({
       {showCalc && <CalculatorPanel onClose={() => setShowCalc(false)} />}
       {showRef && <ReferencePanel onClose={() => setShowRef(false)} />}
     </div>
+    </>
   );
 }
 

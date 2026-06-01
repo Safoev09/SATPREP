@@ -94,7 +94,7 @@ export default function StudentShell({
   return (
     <div className="min-h-screen flex bg-cream-100 transition-colors duration-300">
       {/* ===== SIDEBAR ===== */}
-      <aside className="w-64 bg-cream-50 border-r border-coffee-700/10 flex flex-col fixed h-screen transition-colors duration-300">
+      <aside data-shell="true" className="w-64 bg-cream-50 border-r border-coffee-700/10 flex flex-col fixed h-screen transition-colors duration-300">
         {/* Logo */}
         <div className="px-5 py-5">
           <Link href="/app" className="flex items-center gap-2.5">
@@ -173,7 +173,7 @@ export default function StudentShell({
       {/* ===== MAIN COLUMN ===== */}
       <div className="flex-1 flex flex-col ml-64">
         {/* Top bar */}
-        <header className="bg-cream-50/80 backdrop-blur border-b border-coffee-700/10 px-8 py-3 flex justify-between items-center sticky top-0 z-20 transition-colors duration-300">
+        <header data-shell="true" className="bg-cream-50/80 backdrop-blur border-b border-coffee-700/10 px-8 py-3 flex justify-between items-center sticky top-0 z-20 transition-colors duration-300">
           {/* XP + streak chips */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 bg-cream-100 rounded-full px-3 py-1.5 border border-coffee-700/10">

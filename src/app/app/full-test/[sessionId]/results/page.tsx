@@ -136,6 +136,39 @@ export default async function FullTestResultsPage({
         </div>
       )}
 
+      {/* Anti-cheating violations panel */}
+      {session.violations && Array.isArray(session.violations) && session.violations.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-6">
+          <div className="flex items-start gap-3 mb-2">
+            <div className="text-xl">⚠️</div>
+            <div>
+              <div className="font-display font-semibold text-red-900">
+                {session.violations.length} exam-mode violation{session.violations.length === 1 ? "" : "s"} flagged
+              </div>
+              <div className="text-xs text-red-700 mt-0.5">
+                The following events were detected during this attempt:
+              </div>
+            </div>
+          </div>
+          <ul className="text-xs text-red-800 space-y-1 ml-8">
+            {session.violations.slice(0, 10).map((v: any, i: number) => (
+              <li key={i}>
+                • {v.kind === "tab_switch" ? "Left the test window" :
+                    v.kind === "fullscreen_exit" ? "Exited fullscreen" :
+                    v.kind === "copy_attempt" ? "Copy attempt blocked" :
+                    v.kind === "paste_attempt" ? "Paste attempt blocked" :
+                    v.kind === "context_menu" ? "Right-click attempt" :
+                    v.kind === "print_attempt" ? "Print attempt blocked" :
+                    v.kind === "reload_attempt" ? "Reload attempt" : v.kind}
+              </li>
+            ))}
+            {session.violations.length > 10 && (
+              <li className="italic text-red-600">… and {session.violations.length - 10} more</li>
+            )}
+          </ul>
+        </div>
+      )}
+
       <div className="flex gap-3">
         <Link
           href="/app/full-test"
