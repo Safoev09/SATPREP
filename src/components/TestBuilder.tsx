@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase-client";
 import { getSkillLabel, SKILLS } from "@/lib/skills";
 import { FULL_TEST_SLOTS, MODULE_TEST_SLOTS, type Test } from "@/lib/tests";
 import type { Question } from "@/lib/skills";
+import InlineQuestionCreator from "@/components/InlineQuestionCreator";
 
 type PickedQuestion = { question_id: number; slot: string; position: number };
 
@@ -48,6 +49,10 @@ export default function TestBuilder({
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Inline question creator
+  const [inlineCreatorOpen, setInlineCreatorOpen] = useState(false);
+  // Questions added inline during this session — merged with allQuestions for lookup
+  const [extraQuestions, setExtraQuestions] = useState<Question[]>([]);
   const [activeSlot, setActiveSlot] = useState<string>(
     existing?.test_type === "full" ? "rw_m1" : "module_m1"
   );
@@ -106,7 +111,8 @@ export default function TestBuilder({
     });
   };
 
-  const questionById = (id: number) => allQuestions.find((q) => q.id === id);
+  const questionById = (id: number) =>
+    allQuestions.find((q) => q.id === id) ?? extraQuestions.find((q) => q.id === id);
 
   const totalPicked = Object.values(picks).reduce((sum, arr) => sum + arr.length, 0);
 
@@ -416,8 +422,18 @@ export default function TestBuilder({
               <div className="text-xs text-coffee-600 uppercase tracking-wider font-medium">
                 Available {activeSlotSection === "math" ? "Math" : "R&W"} questions
               </div>
-              <div className="text-[10px] text-coffee-500">
-                {candidateQuestions.length} match
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInlineCreatorOpen(true)}
+                  className="bg-accent hover:bg-accent/90 text-cream-50 text-xs font-medium px-3 py-1.5 rounded-full transition"
+                  title="Type a new question directly into this slot"
+                >
+                  + Type new question
+                </button>
+                <div className="text-[10px] text-coffee-500">
+                  {candidateQuestions.length} match
+                </div>
               </div>
             </div>
 
@@ -526,6 +542,24 @@ export default function TestBuilder({
           </button>
         </div>
       </div>
+
+      {/* Inline question creator modal */}
+      <InlineQuestionCreator
+        open={inlineCreatorOpen}
+        section={activeSlotSection as "reading_writing" | "math"}
+        slotLabel={slots.find((s) => s.id === activeSlot)?.label ?? activeSlot}
+        visibility={visibility}
+        onClose={() => setInlineCreatorOpen(false)}
+        onQuestionCreated={(q) => {
+          // 1) Track the new question locally so questionById can find it
+          setExtraQuestions((prev) => [...prev, q]);
+          // 2) Add it to the current slot's picks (appended to the end)
+          setPicks((prev) => ({
+            ...prev,
+            [activeSlot]: [...(prev[activeSlot] ?? []), q.id],
+          }));
+        }}
+      />
     </div>
   );
 }
