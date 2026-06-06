@@ -32,6 +32,33 @@ export default function StudentShell({
   const supabase = createClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    // Load unread DM + group message count
+    const loadUnread = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: memberRows } = await supabase
+        .from("conversation_members")
+        .select("conversation_id, last_read_at")
+        .eq("user_id", user.id);
+      if (!memberRows || memberRows.length === 0) return;
+      let count = 0;
+      for (const row of memberRows) {
+        const { data: msg } = await supabase
+          .from("messages")
+          .select("created_at")
+          .eq("conversation_id", row.conversation_id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (msg && new Date(msg.created_at) > new Date(row.last_read_at ?? 0)) count++;
+      }
+      setUnreadCount(count);
+    };
+    loadUnread();
+  }, [pathname, supabase]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -82,7 +109,7 @@ export default function StudentShell({
     {
       label: "Community",
       items: [
-        { href: "/app/community", label: "Community", icon: "chat" },
+        { href: "/app/messages", label: "Messages", icon: "chat", badge: unreadCount > 0 ? String(unreadCount) : undefined },
       ],
     },
   ];

@@ -14,6 +14,8 @@ export default function ProfileEditor({
   region,
   targetExamDate,
   hasLifetimeAccess,
+  username: initialUsername,
+  friendId,
 }: {
   email: string;
   fullName: string;
@@ -22,11 +24,14 @@ export default function ProfileEditor({
   region: "us" | "international" | null;
   targetExamDate: string | null;
   hasLifetimeAccess: boolean;
+  username?: string | null;
+  friendId?: string | null;
 }) {
   const router = useRouter();
   const supabase = createClient();
 
   const [name, setName] = useState(fullName);
+  const [username, setUsername] = useState(initialUsername ?? "");
   const [prevScore, setPrevScore] = useState(previousScore?.toString() ?? "");
   const [target, setTarget] = useState(targetScore ?? 1400);
   const [reg, setReg] = useState<"us" | "international">(region ?? "international");
@@ -53,6 +58,7 @@ export default function ProfileEditor({
       .from("profiles")
       .update({
         full_name: name,
+        username: username.trim() || null,
         previous_score: prevScore ? parseInt(prevScore) : null,
         target_score: target,
         region: reg,
@@ -98,6 +104,28 @@ export default function ProfileEditor({
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
           />
+        </div>
+
+        <div>
+          <label>Username <span className="text-coffee-500 font-normal text-xs">(for finding friends in chat)</span></label>
+          <div className="flex items-center mt-1">
+            <span className="bg-cream-200 border border-coffee-700/15 border-r-0 rounded-l-xl px-3 py-2 text-sm text-coffee-600 select-none">@</span>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+              placeholder="yourname"
+              maxLength={20}
+              className="flex-1 border border-coffee-700/15 rounded-r-xl px-3 py-2 text-sm"
+              style={{ borderLeft: "none" }}
+            />
+          </div>
+          <p className="text-xs text-coffee-500 mt-1">Letters, numbers, underscores only. 3–20 characters.</p>
+          {friendId && (
+            <p className="text-xs text-coffee-600 mt-1">
+              Your friend ID: <span className="font-mono font-semibold text-coffee-800">#{friendId}</span> — share this so others can find you.
+            </p>
+          )}
         </div>
 
         <div>

@@ -10,6 +10,7 @@ import RichText from "@/components/RichText";
 import CalculatorPanel from "@/components/CalculatorPanel";
 import ReferencePanel from "@/components/ReferencePanel";
 import ExamShield from "@/components/ExamShield";
+import ShareQuestionModal from "@/components/ShareQuestionModal";
 
 type AnswerState = {
   selected: string | null;       // "A"/"B"/"C"/"D" or typed SPR value
@@ -62,6 +63,12 @@ export default function PracticeRunner({
   const [timerHidden, setTimerHidden] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [finishing, setFinishing] = useState(false);
+  const [shareModal, setShareModal] = useState<{
+    questionId: number;
+    prompt: string;
+    answer: string;
+    correct: boolean;
+  } | null>(null);
 
   // Highlighter state — per-question saved ranges of the passage (simple: stored text offsets)
   const [highlightOn, setHighlightOn] = useState(false);
@@ -487,6 +494,17 @@ export default function PracticeRunner({
                   <div className="text-sm text-coffee-800 leading-relaxed">
                     <RichText text={q.explanation} />
                   </div>
+                  <button
+                    onClick={() => setShareModal({
+                      questionId: q.id,
+                      prompt: q.prompt,
+                      answer: a.selected ?? "",
+                      correct: isCorrect(a, q),
+                    })}
+                    className="mt-3 flex items-center gap-1.5 text-xs text-coffee-500 hover:text-coffee-800 transition"
+                  >
+                    <span>📤</span> Share to chat
+                  </button>
                 </div>
               )}
             </>
@@ -574,6 +592,15 @@ export default function PracticeRunner({
       {/* ===== TOOL PANELS ===== */}
       {showCalc && <CalculatorPanel onClose={() => setShowCalc(false)} />}
       {showRef && <ReferencePanel onClose={() => setShowRef(false)} />}
+      {shareModal && (
+        <ShareQuestionModal
+          questionId={shareModal.questionId}
+          questionPrompt={shareModal.prompt}
+          selectedAnswer={shareModal.answer}
+          wasCorrect={shareModal.correct}
+          onClose={() => setShareModal(null)}
+        />
+      )}
     </div>
     </>
   );

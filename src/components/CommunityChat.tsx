@@ -17,6 +17,9 @@ type Message = {
   author_name: string;
   content: string;
   created_at: string;
+  message_type?: string;
+  shared_answer?: string | null;
+  was_correct?: boolean | null;
 };
 
 export default function CommunityChat({
@@ -60,7 +63,7 @@ export default function CommunityChat({
     setError(null);
     const { data, error: loadError } = await supabase
       .from("messages")
-      .select("*")
+      .select("id, channel_id, user_id, author_name, content, created_at, message_type, shared_answer, was_correct")
       .eq("channel_id", channelId)
       .order("created_at", { ascending: true })
       .limit(100);
@@ -239,7 +242,27 @@ export default function CommunityChat({
                       )}
                     </div>
                     <div className="text-coffee-800 text-sm whitespace-pre-wrap break-words">
-                      {m.content}
+                      {m.message_type === "question_share" ? (
+                        <div className="bg-cream-100 border border-coffee-700/10 rounded-xl p-3 space-y-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span>📝</span>
+                            <span className="text-xs font-semibold text-coffee-700">Shared a question</span>
+                            {m.was_correct != null && (
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                m.was_correct ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                              }`}>
+                                {m.was_correct ? "✓ Got it right" : "✗ Got it wrong"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-coffee-800 leading-relaxed line-clamp-4">{m.content}</p>
+                          {m.shared_answer && (
+                            <p className="text-xs text-coffee-600">Their answer: <strong>({m.shared_answer})</strong></p>
+                          )}
+                        </div>
+                      ) : (
+                        m.content
+                      )}
                     </div>
                   </div>
                 </div>
