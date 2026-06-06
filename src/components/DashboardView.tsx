@@ -77,7 +77,7 @@ export default function DashboardView({
   const radarSkills = skillStats.filter((s) => s.section === radarSection);
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-8 max-w-6xl">
       {/* ===== HEADER ===== */}
       <div className="mb-6 animate-fadeup">
         <div className="text-xs text-accent uppercase tracking-[0.15em] font-semibold mb-1">
