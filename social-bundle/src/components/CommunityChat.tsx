@@ -22,32 +22,79 @@ type Message = {
   was_correct?: boolean | null;
 };
 
+// All props are now optional — component fetches its own data when not provided.
 export default function CommunityChat({
-  channels,
+  channels: propChannels,
   initialChannelId,
   initialMessages,
-  currentUserId,
-  currentUserName,
+  currentUserId: propUserId,
+  currentUserName: propUserName,
 }: {
-  channels: Channel[];
-  initialChannelId: number;
-  initialMessages: Message[];
-  currentUserId: string;
-  currentUserName: string;
-}) {
+  channels?: Channel[];
+  initialChannelId?: number;
+  initialMessages?: Message[];
+  currentUserId?: string;
+  currentUserName?: string;
+} = {}) {
   const supabase = createClient();
 
-  const [activeChannelId, setActiveChannelId] = useState(initialChannelId);
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [channels, setChannels] = useState<Channel[]>(propChannels ?? []);
+  const [activeChannelId, setActiveChannelId] = useState<number>(initialChannelId ?? 0);
+  const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
+  const [currentUserId, setCurrentUserId] = useState(propUserId ?? "");
+  const [currentUserName, setCurrentUserName] = useState(propUserName ?? "");
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!propChannels);
   const [error, setError] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const activeChannel = channels.find((c) => c.id === activeChannelId);
 
-  // Scroll to newest message
+  // Self-load when no props provided (used inside /app/messages)
+  useEffect(() => {
+    if (propChannels && propUserId) return; // already have everything
+
+    const load = async () => {
+      setLoading(true);
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+        setCurrentUserName(profile?.full_name ?? user.email ?? "Student");
+      }
+
+      // Load channels
+      const { data: channelData } = await supabase
+        .from("channels")
+        .select("*")
+        .order("id", { ascending: true });
+
+      if (channelData && channelData.length > 0) {
+        setChannels(channelData);
+        const firstId = channelData[0].id;
+        setActiveChannelId(firstId);
+
+        // Load messages for first channel
+        const { data: msgData } = await supabase
+          .from("messages")
+          .select("id, channel_id, user_id, author_name, content, created_at, message_type, shared_answer, was_correct")
+          .eq("channel_id", firstId)
+          .order("created_at", { ascending: true })
+          .limit(100);
+        setMessages(msgData ?? []);
+      }
+      setLoading(false);
+    };
+
+    load();
+  }, [propChannels, propUserId, supabase]);
+
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
@@ -56,7 +103,6 @@ export default function CommunityChat({
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Load messages when the channel changes
   const loadChannel = async (channelId: number) => {
     setActiveChannelId(channelId);
     setLoading(true);
@@ -75,22 +121,16 @@ export default function CommunityChat({
     setLoading(false);
   };
 
-  // Real-time subscription — new messages in the active channel appear instantly
   useEffect(() => {
+    if (!activeChannelId) return;
     const channel = supabase
       .channel(`messages-${activeChannelId}`)
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `channel_id=eq.${activeChannelId}`,
-        },
+        { event: "INSERT", schema: "public", table: "messages", filter: `channel_id=eq.${activeChannelId}` },
         (payload) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => {
-            // Avoid duplicate if it's our own message already added
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
@@ -98,12 +138,7 @@ export default function CommunityChat({
       )
       .on(
         "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "messages",
-          filter: `channel_id=eq.${activeChannelId}`,
-        },
+        { event: "DELETE", schema: "public", table: "messages", filter: `channel_id=eq.${activeChannelId}` },
         (payload) => {
           const deletedId = (payload.old as { id: number }).id;
           setMessages((prev) => prev.filter((m) => m.id !== deletedId));
@@ -111,14 +146,12 @@ export default function CommunityChat({
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [activeChannelId, supabase]);
 
   const sendMessage = async () => {
     const text = draft.trim();
-    if (!text) return;
+    if (!text || !currentUserId) return;
     setSending(true);
     setError(null);
 
@@ -139,7 +172,6 @@ export default function CommunityChat({
       return;
     }
 
-    // Add our message immediately (realtime will also fire, but we dedupe)
     if (data) {
       setMessages((prev) =>
         prev.some((m) => m.id === data.id) ? prev : [...prev, data as Message]
@@ -163,13 +195,16 @@ export default function CommunityChat({
 
   const fmtTime = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleString([], {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return d.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   };
+
+  if (loading && channels.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-coffee-600 text-sm">
+        Loading community…
+      </div>
+    );
+  }
 
   return (
     <div className="flex" style={{ height: "calc(100vh - 65px)" }}>
@@ -199,7 +234,6 @@ export default function CommunityChat({
 
       {/* Chat area */}
       <div className="flex-1 flex flex-col bg-cream-50">
-        {/* Channel header */}
         <div className="px-6 py-4 border-b border-coffee-700/10">
           <h1 className="font-display font-semibold text-lg text-coffee-900">
             {activeChannel?.emoji} {activeChannel?.name}
@@ -209,7 +243,6 @@ export default function CommunityChat({
           )}
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
           {loading ? (
             <div className="text-center text-coffee-600 text-sm py-8">Loading messages…</div>
@@ -243,7 +276,7 @@ export default function CommunityChat({
                     </div>
                     <div className="text-coffee-800 text-sm whitespace-pre-wrap break-words">
                       {m.message_type === "question_share" ? (
-                        <div className="bg-cream-100 border border-coffee-700/10 rounded-xl p-3 space-y-1.5">
+                        <div className="bg-cream-100 border border-coffee-700/10 rounded-xl p-3 space-y-1.5 mt-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span>📝</span>
                             <span className="text-xs font-semibold text-coffee-700">Shared a question</span>
@@ -272,14 +305,12 @@ export default function CommunityChat({
           <div ref={bottomRef} />
         </div>
 
-        {/* Error */}
         {error && (
           <div className="px-6 py-2 text-sm text-red-700 bg-red-50 border-t border-red-200">
             {error}
           </div>
         )}
 
-        {/* Composer */}
         <div className="border-t border-coffee-700/10 p-4">
           <div className="flex gap-2">
             <textarea
