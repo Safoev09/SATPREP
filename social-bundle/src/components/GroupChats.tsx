@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase-client";
 
 type Profile = { id: string; full_name: string | null; username: string | null };
 type GroupConv = { id: string; name: string | null; members: Profile[]; unread: boolean; last_message?: string };
-type Message = { id: string; user_id: string; content: string; created_at: string; message_type: string; shared_answer?: string | null; was_correct?: boolean | null; profile?: { full_name: string | null } };
+type Message = { id: string; user_id: string; content: string; created_at: string; message_type: string; shared_answer?: string | null; was_correct?: boolean | null; profile?: { full_name: string | null } | { full_name: string | null }[] | null };
 
 export default function GroupChats({ userId, onUnreadChange }: { userId: string; onUnreadChange: (n: number) => void }) {
   const [groups, setGroups] = useState<GroupConv[]>([]);
@@ -108,7 +108,7 @@ export default function GroupChats({ userId, onUnreadChange }: { userId: string;
       .eq("conversation_id", groupId)
       .order("created_at", { ascending: true });
 
-    setMessages((data as Message[]) ?? []);
+    setMessages((data as unknown as Message[]) ?? []);
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
 
     const channel = supabase
@@ -266,7 +266,8 @@ export default function GroupChats({ userId, onUnreadChange }: { userId: string;
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
               {messages.map((m) => {
                 const isMe = m.user_id === userId;
-                const senderName = m.profile?.full_name ?? "Student";
+                const profileData = Array.isArray(m.profile) ? m.profile[0] : m.profile;
+                const senderName = profileData?.full_name ?? "Student";
                 return (
                   <div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                     <div className="max-w-[70%]">

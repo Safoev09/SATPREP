@@ -11,7 +11,7 @@ type Message = {
   message_type: string; question_id?: number | null;
   shared_answer?: string | null; was_correct?: boolean | null;
   question?: { prompt: string; correct_answer: string } | null;
-  profile?: { full_name: string | null };
+  profile?: { full_name: string | null } | { full_name: string | null }[] | null;
 };
 
 export default function DirectMessages({ userId, onUnreadChange }: { userId: string; onUnreadChange: (n: number) => void }) {
@@ -99,7 +99,7 @@ export default function DirectMessages({ userId, onUnreadChange }: { userId: str
       .eq("conversation_id", convId)
       .order("created_at", { ascending: true });
 
-    setMessages((data as Message[]) ?? []);
+    setMessages((data as unknown as Message[]) ?? []);
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
 
     // Realtime subscription
