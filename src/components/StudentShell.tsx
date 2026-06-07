@@ -198,7 +198,7 @@ export default function StudentShell({
       </aside>
 
       {/* ===== MAIN COLUMN ===== */}
-      <div className="flex-1 flex flex-col ml-64">
+      <div className="flex flex-col min-h-screen ml-64 w-[calc(100vw-16rem)]">
         {/* Top bar */}
         <header data-shell="true" className="bg-cream-50/80 backdrop-blur border-b border-coffee-700/10 px-8 py-3 flex justify-between items-center sticky top-0 z-20 transition-colors duration-300">
           {/* XP + streak chips */}
