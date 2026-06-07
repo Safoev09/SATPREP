@@ -304,3 +304,4 @@ function NavIcon({ name }: { name: string; active?: boolean }) {
       return <svg {...common}><circle cx="12" cy="12" r="9" /></svg>;
   }
 }
+
