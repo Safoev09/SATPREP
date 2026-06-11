@@ -20,8 +20,15 @@ export default function DirectMessages({ userId, onUnreadChange }: { userId: str
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [myName, setMyName] = useState("Student");
   const bottomRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+
+  // Load current user's name for author_name field
+  useEffect(() => {
+    supabase.from("profiles").select("full_name").eq("id", userId).single()
+      .then(({ data }) => { if (data?.full_name) setMyName(data.full_name); });
+  }, [userId, supabase]);
 
   const loadConversations = useCallback(async () => {
     const { data: memberRows } = await supabase
@@ -120,9 +127,9 @@ export default function DirectMessages({ userId, onUnreadChange }: { userId: str
     setSending(true);
     await supabase.from("messages").insert({
       user_id: userId,
+      author_name: myName,
       conversation_id: activeConvId,
       content: draft.trim(),
-      channel: "dm",
       message_type: "text",
     });
     setDraft("");

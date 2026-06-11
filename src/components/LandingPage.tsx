@@ -60,29 +60,32 @@ function Hero3D() {
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={() => setTilt({ x: 0, y: 0 })}
-      className="relative pt-36 pb-28 px-6 md:px-12 overflow-hidden w-full"
+      className="relative pt-36 pb-28 px-8 lg:px-16 w-full"
     >
-      <div className="absolute top-[-20%] left-[10%] w-[34rem] h-[34rem] rounded-full bg-accent/12 blur-3xl animate-drift1 pointer-events-none" />
-      <div className="absolute bottom-[-30%] right-[5%] w-[40rem] h-[40rem] rounded-full bg-beige-300/25 blur-3xl animate-drift2 pointer-events-none" />
-      <div className="absolute top-[30%] right-[30%] w-72 h-72 rounded-full bg-coffee-500/8 blur-3xl animate-drift3 pointer-events-none" />
+      {/* Clip wrapper for orbs only — doesn't affect text */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[10%] w-[34rem] h-[34rem] rounded-full bg-accent/12 blur-3xl animate-drift1" />
+        <div className="absolute bottom-[-30%] right-[5%] w-[40rem] h-[40rem] rounded-full bg-beige-300/25 blur-3xl animate-drift2" />
+        <div className="absolute top-[30%] right-[30%] w-72 h-72 rounded-full bg-coffee-500/8 blur-3xl animate-drift3" />
+      </div>
 
       <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative">
         <div>
-          <div className="inline-flex items-center gap-2 bg-green-100 border border-green-300/60 text-green-800 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6 animate-fadeup">
+          <div className="inline-flex items-center gap-2 bg-green-100 border border-green-300/60 text-green-800 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse" />
             100% free during beta — no card, no catch
           </div>
-          <h1 className="font-display text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight mb-6 animate-fadeup" style={{ animationDelay: "80ms" }}>
+          <h1 className="font-display text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight mb-6">
             The calm way to a<br />
             <span className="relative inline-block">
               <span className="relative z-10">1500+ SAT.</span>
               <span className="absolute bottom-1.5 left-0 right-0 h-4 bg-accent/25 -rotate-1 rounded" />
             </span>
           </h1>
-          <p className="text-coffee-600 text-lg leading-relaxed mb-9 max-w-md animate-fadeup" style={{ animationDelay: "160ms" }}>
+          <p className="text-coffee-600 text-lg leading-relaxed mb-9 max-w-md">
             Adaptive mock exams, surgical drills, a living vocabulary system, and a study plan that rebuilds itself around you — every single day.
           </p>
-          <div className="flex flex-wrap items-center gap-4 animate-fadeup" style={{ animationDelay: "240ms" }}>
+          <div className="flex flex-wrap items-center gap-4">
             <Link href="/signup" className="bg-coffee-800 hover:bg-coffee-900 text-cream-50 font-medium px-8 py-4 rounded-full transition hover:scale-[1.03] shadow-xl shadow-coffee-800/25 text-[15px]">
               Create free account →
             </Link>

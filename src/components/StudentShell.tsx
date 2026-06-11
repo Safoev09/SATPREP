@@ -245,11 +245,7 @@ export default function StudentShell({
                 <Link href="/app/settings" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-coffee-700 hover:bg-cream-100/60 transition">
                   Settings
                 </Link>
-                {!hasLifetimeAccess && (
-                  <Link href="/app/upgrade" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-accent font-medium hover:bg-cream-100/60 transition">
-                    ✨ Upgrade to premium
-                  </Link>
-                )}
+                {/* Premium is free during beta */}
                 <button onClick={logout} className="block w-full text-left px-4 py-2.5 text-sm text-red-700 hover:bg-cream-100/60 border-t border-coffee-700/10 transition">
                   Sign out
                 </button>
