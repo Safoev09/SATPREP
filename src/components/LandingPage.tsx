@@ -1,357 +1,293 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRef, useState } from "react";
 
 export default function LandingPage() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  return (
+    <div className="min-h-screen bg-cream-100 text-coffee-900 overflow-x-hidden">
+      <Header />
+      <Hero3D />
+      <SocialProof />
+      <Features />
+      <HowItWorks />
+      <Testimonials />
+      <FinalCTA />
+      <Footer />
+    </div>
+  );
+}
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+function Header() {
+  return (
+    <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-cream-100/70 border-b border-coffee-700/8">
+      <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-coffee-800 text-cream-50 grid place-items-center font-display italic font-bold text-lg">S</div>
+          <span className="font-display font-semibold text-lg tracking-tight">SATPeaK</span>
+        </div>
+        <nav className="hidden md:flex items-center gap-7 text-sm text-coffee-700">
+          <a href="#features" className="hover:text-coffee-900 transition">Features</a>
+          <a href="#how" className="hover:text-coffee-900 transition">How it works</a>
+          <a href="#stories" className="hover:text-coffee-900 transition">Stories</a>
+        </nav>
+        <div className="flex items-center gap-3">
+          <Link href="/login" className="text-sm text-coffee-700 hover:text-coffee-900 transition px-2 py-2">Log in</Link>
+          <Link href="/signup" className="bg-coffee-800 hover:bg-coffee-900 text-cream-50 text-sm font-medium px-5 py-2.5 rounded-full transition hover:scale-[1.03] shadow-lg shadow-coffee-800/15">
+            Start free →
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
+/* ===== 3D INTERACTIVE HERO — mouse-tracked perspective tilt, pure CSS 3D ===== */
+function Hero3D() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-    const COLORS = ["#8B6B4A", "#6E5036", "#B5895D", "#503826", "#C3AC83"];
-
-    type Particle = {
-      x: number; y: number;
-      vx: number; vy: number;
-      size: number; life: number; decay: number;
-      color: string; gravity: number;
-      rot: number; rotSpeed: number;
-    };
-    type Ripple = { x: number; y: number; r: number; life: number };
-
-    let particles: Particle[] = [];
-    let ripples: Ripple[] = [];
-
-    const onClick = (e: MouseEvent) => {
-      ripples.push({ x: e.clientX, y: e.clientY, r: 5, life: 1 });
-      const count = 14 + Math.floor(Math.random() * 6);
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 2 + Math.random() * 5;
-        particles.push({
-          x: e.clientX, y: e.clientY,
-          vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-          size: 3 + Math.random() * 5,
-          life: 1, decay: 0.012 + Math.random() * 0.015,
-          color: COLORS[Math.floor(Math.random() * COLORS.length)],
-          gravity: 0.12,
-          rot: Math.random() * Math.PI,
-          rotSpeed: (Math.random() - 0.5) * 0.15,
-        });
-      }
-    };
-    document.addEventListener("click", onClick);
-
-    let frame = 0;
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ripples = ripples.filter((r) => r.life > 0);
-      particles = particles.filter((p) => p.life > 0);
-
-      ripples.forEach((r) => {
-        r.r += 4; r.life -= 0.025;
-        ctx.save();
-        ctx.globalAlpha = r.life * 0.6;
-        ctx.strokeStyle = "#8B6B4A";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      });
-
-      particles.forEach((p) => {
-        p.x += p.vx; p.y += p.vy; p.vy += p.gravity;
-        p.vx *= 0.97; p.life -= p.decay;
-        p.rot += p.rotSpeed;
-        ctx.save();
-        ctx.globalAlpha = p.life;
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, p.size, p.size * 1.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(251, 247, 241, 0.5)";
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        ctx.moveTo(0, -p.size * 1.2);
-        ctx.bezierCurveTo(p.size * 0.3, -p.size * 0.4, p.size * 0.3, p.size * 0.4, 0, p.size * 1.2);
-        ctx.stroke();
-        ctx.restore();
-      });
-
-      frame = requestAnimationFrame(animate);
-    };
-    animate();
-
-    return () => {
-      window.removeEventListener("resize", resize);
-      document.removeEventListener("click", onClick);
-      cancelAnimationFrame(frame);
-    };
-  }, []);
+  const onMove = (e: React.MouseEvent) => {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: py * -10, y: px * 14 });
+  };
 
   return (
-    <div className="relative overflow-x-hidden">
-      {/* floating background shapes */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute w-[420px] h-[420px] rounded-full bg-beige-300 -top-24 -left-20 opacity-55 blur-3xl animate-drift1" />
-        <div className="absolute w-[360px] h-[360px] rounded-full bg-cream-200 top-1/3 -right-16 opacity-55 blur-3xl animate-drift2" />
-        <div className="absolute w-[500px] h-[500px] rounded-full bg-beige-400 -bottom-32 left-1/3 opacity-30 blur-3xl animate-drift3" />
-        <div className="absolute w-[280px] h-[280px] rounded-full bg-cream-100 top-3/5 left-[5%] opacity-55 blur-3xl animate-drift1" />
-      </div>
+    <section
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={() => setTilt({ x: 0, y: 0 })}
+      className="relative pt-36 pb-28 px-6 overflow-hidden"
+    >
+      <div className="absolute top-[-20%] left-[10%] w-[34rem] h-[34rem] rounded-full bg-accent/12 blur-3xl animate-drift1 pointer-events-none" />
+      <div className="absolute bottom-[-30%] right-[5%] w-[40rem] h-[40rem] rounded-full bg-beige-300/25 blur-3xl animate-drift2 pointer-events-none" />
+      <div className="absolute top-[30%] right-[30%] w-72 h-72 rounded-full bg-coffee-500/8 blur-3xl animate-drift3 pointer-events-none" />
 
-      {/* click burst canvas */}
-      <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-[9999]" />
-
-      {/* NAV */}
-      <nav className="sticky top-0 z-50 backdrop-blur bg-cream-50/85 border-b border-coffee-700/10">
-        <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-coffee-700 text-cream-50 grid place-items-center font-display italic font-bold">S</span>
-            <span className="font-display font-semibold text-xl text-coffee-800">SATPeaK</span>
-          </Link>
-          <div className="flex gap-6 items-center">
-            <a href="#features" className="text-coffee-700 text-sm font-medium hover:text-coffee-900 hidden sm:inline">Features</a>
-            <a href="#pricing" className="text-coffee-700 text-sm font-medium hover:text-coffee-900 hidden sm:inline">Pricing</a>
-            <Link href="/login" className="text-coffee-700 text-sm font-medium hover:text-coffee-900">Log in</Link>
-            <Link href="/signup" className="bg-coffee-800 hover:bg-coffee-900 text-cream-50 px-5 py-2 rounded-full text-sm font-medium">
-              Get started
-            </Link>
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative">
+        <div>
+          <div className="inline-flex items-center gap-2 bg-green-100 border border-green-300/60 text-green-800 text-xs font-semibold px-3.5 py-1.5 rounded-full mb-6 animate-fadeup">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse" />
+            100% free during beta — no card, no catch
           </div>
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <section className="relative z-10 max-w-6xl mx-auto px-8 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-cream-100 text-coffee-700 px-3 py-1.5 rounded-full text-sm font-medium border border-coffee-700/10 mb-7">
-              <span className="w-1.5 h-1.5 rounded-full bg-coffee-600 animate-pulse" />
-              Built for the digital SAT
-            </div>
-            <h1 className="font-display font-medium text-coffee-900 leading-[1.02] tracking-tight mb-6" style={{ fontSize: "clamp(2.8rem, 5.8vw, 4.6rem)" }}>
-              Master the SAT, <em className="italic font-normal text-coffee-600">the warm way.</em>
-            </h1>
-            <p className="text-coffee-600 text-xl max-w-xl mb-10 leading-relaxed">
-              A calmer way to prep. Skill-by-skill drills, real Bluebook-style mocks,
-              and clear hand-written explanations for every wrong answer.
-            </p>
-            <div className="flex gap-3 items-center flex-wrap">
-              <Link href="/signup" className="bg-coffee-800 hover:bg-coffee-900 text-cream-50 px-8 py-4 rounded-full font-medium transition shadow-sm">
-                Start practising — 19,900 so'm
-              </Link>
-              <a href="#features" className="border-2 border-beige-400 text-coffee-800 hover:bg-coffee-800 hover:text-cream-50 hover:border-coffee-800 px-8 py-4 rounded-full font-medium transition">
-                See how it works
-              </a>
-            </div>
-            <div className="mt-10 flex gap-10 flex-wrap">
-              <div>
-                <div className="font-display text-3xl font-semibold text-coffee-800">800+</div>
-                <div className="text-sm text-coffee-600 mt-1">Official questions</div>
-              </div>
-              <div>
-                <div className="font-display text-3xl font-semibold text-coffee-800">+180</div>
-                <div className="text-sm text-coffee-600 mt-1">Avg. score gain</div>
-              </div>
-              <div>
-                <div className="font-display text-3xl font-semibold text-coffee-800">1,600</div>
-                <div className="text-sm text-coffee-600 mt-1">Score ceiling, met daily</div>
-              </div>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="bg-cream-50 rounded-3xl shadow-2xl p-7 border border-coffee-700/10 -rotate-2 hover:rotate-0 transition-transform duration-500">
-              <div className="flex justify-between items-center mb-5">
-                <span className="text-sm text-coffee-600 font-medium">R&W · Q 14 of 27</span>
-                <span className="bg-coffee-800 text-cream-50 px-3 py-1 rounded-full text-sm font-medium tabular-nums">14:32</span>
-              </div>
-              <p className="font-display text-coffee-800 text-base leading-relaxed mb-5">
-                Which choice completes the text with the most logical transition?
-              </p>
-              {[
-                { letter: "A", text: "Likewise, the data confirms…", sel: false },
-                { letter: "B", text: "However, the data suggests…", sel: true },
-                { letter: "C", text: "For instance, the data shows…", sel: false },
-                { letter: "D", text: "In addition, the data confirms…", sel: false },
-              ].map((c) => (
-                <div key={c.letter} className={`flex items-center gap-3 p-3 mb-2 rounded-xl border-2 transition ${c.sel ? "bg-cream-200 border-coffee-700" : "bg-cream-100 border-transparent"}`}>
-                  <span className={`w-6 h-6 rounded-full grid place-items-center text-sm font-semibold ${c.sel ? "bg-coffee-700 text-cream-50" : "bg-cream-50 border-2 border-coffee-700 text-coffee-800"}`}>{c.letter}</span>
-                  <span className="text-coffee-700 text-sm">{c.text}</span>
-                </div>
-              ))}
-            </div>
-            <div className="absolute -top-5 right-0 bg-cream-50 rounded-2xl px-4 py-3 shadow-lg border border-coffee-700/10 text-sm font-medium text-coffee-700 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-green-600 text-white grid place-items-center text-xs">✓</span>
-              Transitions · Strong
-            </div>
-            <div className="absolute bottom-5 -left-8 bg-cream-50 rounded-2xl px-4 py-3 shadow-lg border border-coffee-700/10 text-sm font-medium text-coffee-700">
-              🔥 7-day streak
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section id="features" className="relative z-10 max-w-6xl mx-auto px-8 py-20">
-        <div className="mb-16">
-          <div className="text-coffee-600 text-sm font-medium uppercase tracking-widest mb-3">What's inside</div>
-          <h2 className="font-display font-medium text-coffee-900 mb-4 tracking-tight max-w-2xl" style={{ fontSize: "clamp(2rem, 3.5vw, 2.8rem)" }}>
-            Everything you need. <em className="italic font-normal text-coffee-600">Nothing you don't.</em>
-          </h2>
-          <p className="text-coffee-600 text-lg max-w-2xl">
-            Three practice modes, a hand-written explanation for every question, and a calm interface inspired by the real Bluebook app.
+          <h1 className="font-display text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight mb-6 animate-fadeup" style={{ animationDelay: "80ms" }}>
+            The calm way to a<br />
+            <span className="relative inline-block">
+              <span className="relative z-10">1500+ SAT.</span>
+              <span className="absolute bottom-1.5 left-0 right-0 h-4 bg-accent/25 -rotate-1 rounded" />
+            </span>
+          </h1>
+          <p className="text-coffee-600 text-lg leading-relaxed mb-9 max-w-md animate-fadeup" style={{ animationDelay: "160ms" }}>
+            Adaptive mock exams, surgical drills, a living vocabulary system, and a study plan that rebuilds itself around you — every single day.
           </p>
+          <div className="flex flex-wrap items-center gap-4 animate-fadeup" style={{ animationDelay: "240ms" }}>
+            <Link href="/signup" className="bg-coffee-800 hover:bg-coffee-900 text-cream-50 font-medium px-8 py-4 rounded-full transition hover:scale-[1.03] shadow-xl shadow-coffee-800/25 text-[15px]">
+              Create free account →
+            </Link>
+            <a href="#how" className="text-coffee-700 hover:text-coffee-900 font-medium text-[15px] px-2 py-4 transition">
+              See how it works ↓
+            </a>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { title: "Skill drills", body: "Practise Transitions, Boundaries, Algebra, Geometry — one skill at a time. Easy → hard ramp like the real test.", featured: false },
-            { title: "Full SAT mock", body: "The exact real-SAT structure — 2 R&W modules, a break, then 2 Math modules. Adaptive. Score out of 1,600.", featured: true },
-            { title: "Single modules", body: "Short on time? Run a single Math or English module at the difficulty you want. Perfect for a focused session.", featured: false },
-            { title: "Explanation for every question", body: "Got it wrong? A clear hand-written explanation appears immediately. No paywall, no waiting.", featured: false },
-            { title: "Bluebook-style tools", body: "Built-in Desmos calculator, math reference sheet, passage highlighter, strikethrough, and question navigator.", featured: false },
-            { title: "Progress that adapts", body: "We surface your weakest skills and keep an eye on your countdown to test day. You always know what to practise next.", featured: false },
-          ].map((f, i) => (
-            <div key={i} className={`p-7 rounded-2xl border transition hover:-translate-y-1 hover:shadow-md ${f.featured ? "bg-coffee-800 border-transparent text-cream-100" : "bg-cream-50 border-coffee-700/10 hover:border-beige-400"}`}>
-              <div className={`w-12 h-12 rounded-xl grid place-items-center mb-5 ${f.featured ? "bg-cream-100/10" : "bg-cream-100"}`}>
-                <div className={`w-5 h-5 rounded-full ${f.featured ? "bg-cream-100" : "bg-coffee-700"}`} />
+
+        <div className="relative h-[420px] hidden lg:block" style={{ perspective: "1200px" }}>
+          <div
+            className="absolute inset-0 transition-transform duration-200 ease-out"
+            style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`, transformStyle: "preserve-3d" }}
+          >
+            <div
+              className="absolute top-4 left-8 w-72 bg-cream-50 rounded-3xl border border-coffee-700/10 shadow-2xl shadow-coffee-900/10 p-6 animate-floaty"
+              style={{ transform: "translateZ(80px)" }}
+            >
+              <div className="text-xs text-coffee-500 uppercase tracking-wider font-semibold mb-2">Mock exam result</div>
+              <div className="font-display text-5xl font-semibold mb-1">1480</div>
+              <div className="text-xs text-green-700 font-medium">▲ +160 from baseline</div>
+              <div className="mt-4 h-2 rounded-full bg-cream-200 overflow-hidden">
+                <div className="h-full w-[88%] bg-gradient-to-r from-accent to-coffee-700 rounded-full" />
               </div>
-              <h3 className={`font-display font-semibold text-xl mb-2 ${f.featured ? "text-cream-50" : "text-coffee-800"}`}>{f.title}</h3>
-              <p className={`text-base leading-relaxed ${f.featured ? "text-cream-200" : "text-coffee-600"}`}>{f.body}</p>
+            </div>
+
+            <div
+              className="absolute top-44 right-0 w-60 bg-coffee-800 text-cream-50 rounded-3xl shadow-2xl shadow-coffee-900/30 p-6 animate-floaty"
+              style={{ transform: "translateZ(140px)", animationDelay: "0.8s" }}
+            >
+              <div className="text-3xl mb-2">🔥</div>
+              <div className="font-display text-3xl font-semibold">21-day streak</div>
+              <div className="text-cream-200 text-xs mt-1">Longest in your cohort</div>
+            </div>
+
+            <div
+              className="absolute bottom-2 left-0 w-64 bg-cream-50 rounded-3xl border border-coffee-700/10 shadow-xl shadow-coffee-900/10 p-5 animate-floaty"
+              style={{ transform: "translateZ(40px)", animationDelay: "1.6s" }}
+            >
+              <div className="text-xs text-coffee-500 uppercase tracking-wider font-semibold mb-2">Vocabulary constellation</div>
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-1.5">
+                  <span className="w-7 h-7 rounded-full grid place-items-center text-xs bg-gradient-to-br from-accent/30 to-beige-300/50 border border-cream-100">✦</span>
+                  <span className="w-7 h-7 rounded-full grid place-items-center text-xs bg-gradient-to-br from-accent/30 to-beige-300/50 border border-cream-100">✦</span>
+                  <span className="w-7 h-7 rounded-full grid place-items-center text-xs bg-gradient-to-br from-accent/30 to-beige-300/50 border border-cream-100">✦</span>
+                </div>
+                <div className="text-sm font-medium">312 words mastered</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SocialProof() {
+  const stats = [
+    { num: "270+", label: "Original questions" },
+    { num: "500", label: "SAT Power vocabulary words" },
+    { num: "10", label: "R&W skills mapped" },
+    { num: "∞", label: "Adaptive practice paths" },
+  ];
+  return (
+    <section className="border-y border-coffee-700/8 bg-cream-50/60 py-8 px-6">
+      <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        {stats.map((s) => (
+          <div key={s.label}>
+            <div className="font-display text-3xl font-semibold text-coffee-900">{s.num}</div>
+            <div className="text-xs text-coffee-600 mt-1">{s.label}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Features() {
+  const items = [
+    { emoji: "🎯", title: "Bluebook-real mock exams", desc: "Adaptive Module 2, exact timing, exam-mode lockdown — your practice feels exactly like test day, so test day feels like practice." },
+    { emoji: "🧠", title: "A study plan with a brain", desc: "Every morning your plan rebuilds itself from yesterday's accuracy, due vocabulary, and days-to-exam. No two students see the same route." },
+    { emoji: "🏔️", title: "Vocabulary that sticks", desc: "Spaced repetition tuned for the SAT Power 400, etymology trees, match sprints, and a constellation map that fills as you master words." },
+    { emoji: "📊", title: "Skill-level X-ray", desc: "Not just reading scores — your Cross-Text Connections accuracy is 43% and here are 12 targeted drills to fix it." },
+    { emoji: "💬", title: "A community that grinds with you", desc: "Share tricky questions to channels, DM friends, build study groups. Solo prep is over." },
+    { emoji: "🛡️", title: "Honest exam conditions", desc: "Full-screen exam shield, violation tracking, auto-submit. Your mock score means something." },
+  ];
+  return (
+    <section id="features" className="py-24 px-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-14">
+          <div className="text-accent text-xs font-semibold uppercase tracking-[0.2em] mb-3">Why SATPeaK</div>
+          <h2 className="font-display text-4xl font-semibold tracking-tight">Built like the real exam.<br />Designed like nothing else.</h2>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {items.map((f) => (
+            <div
+              key={f.title}
+              className="group bg-cream-50 rounded-3xl border border-coffee-700/10 p-7 hover:border-accent/40 hover:shadow-xl hover:shadow-coffee-900/5 hover:-translate-y-1 transition-all duration-300"
+            >
+              <div className="text-3xl mb-4 group-hover:scale-110 transition-transform duration-300 origin-left">{f.emoji}</div>
+              <h3 className="font-display text-lg font-semibold mb-2">{f.title}</h3>
+              <p className="text-coffee-600 text-sm leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* TESTIMONIALS */}
-      <section className="bg-cream-100 relative z-10">
-        <div className="max-w-6xl mx-auto px-8 py-20">
-          <div className="mb-12">
-            <div className="text-coffee-600 text-sm font-medium uppercase tracking-widest mb-3">Loved by students</div>
-            <h2 className="font-display font-medium text-coffee-900 tracking-tight max-w-3xl" style={{ fontSize: "clamp(2rem, 3.5vw, 2.8rem)" }}>
-              From <em className="italic font-normal text-coffee-600">1180</em> to <em className="italic font-normal text-coffee-600">1480</em>. Stories like this every week.
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { quote: "Felt like Bluebook but warmer. The drills by skill changed my R&W score — went from 580 to 720 in six weeks.", name: "Aziza K.", meta: "Tashkent · 1480 SAT", init: "AK" },
-              { quote: "The explanation after each wrong answer was so clear, I finally understood Transitions for real. Best 20k so'm I've spent.", name: "Jasur D.", meta: "Samarkand · 1390 SAT", init: "JD" },
-              { quote: "Did three full mocks before the real exam. Walking in I already knew the interface, the timer, the calculator. No surprises.", name: "Madina S.", meta: "Bukhara · 1520 SAT", init: "MS" },
-            ].map((t, i) => (
-              <div key={i} className="bg-cream-50 rounded-2xl p-7 border border-coffee-700/10 flex flex-col">
-                <div className="font-display text-5xl text-beige-400 leading-none mb-2">"</div>
-                <p className="font-display italic text-coffee-800 text-lg mb-6 flex-1">{t.quote}</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-coffee-700 text-cream-50 grid place-items-center font-display font-semibold">{t.init}</div>
-                  <div>
-                    <div className="font-semibold text-coffee-800 text-sm">{t.name}</div>
-                    <div className="text-xs text-coffee-600">{t.meta}</div>
-                  </div>
+function HowItWorks() {
+  const steps = [
+    { n: "01", title: "Diagnose", desc: "A 30-minute diagnostic maps your exact skill shape across all 10 R&W skills and 4 Math domains." },
+    { n: "02", title: "Follow your route", desc: "Each day, a fresh plan: weakest-skill drills, due vocabulary, and timed modules — paced to your exam date." },
+    { n: "03", title: "Rehearse the real thing", desc: "Full adaptive mocks under exam-shield conditions. Score 400–1600, reviewed question by question." },
+    { n: "04", title: "Peak on test day", desc: "By exam week you have seen every question type, every trap, every timing crunch — nothing can surprise you." },
+  ];
+  return (
+    <section id="how" className="py-24 px-6 bg-coffee-900 text-cream-50 relative overflow-hidden">
+      <div className="absolute top-[-30%] right-[-10%] w-[36rem] h-[36rem] rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+      <div className="max-w-5xl mx-auto relative">
+        <div className="text-center mb-16">
+          <div className="text-accent text-xs font-semibold uppercase tracking-[0.2em] mb-3">The route</div>
+          <h2 className="font-display text-4xl font-semibold tracking-tight">Four steps to the summit.</h2>
+        </div>
+        <div className="grid md:grid-cols-2 gap-x-12 gap-y-12">
+          {steps.map((s) => (
+            <div key={s.n} className="flex gap-5">
+              <div className="font-display text-4xl font-semibold text-accent/60 leading-none shrink-0">{s.n}</div>
+              <div>
+                <h3 className="font-display text-xl font-semibold mb-1.5">{s.title}</h3>
+                <p className="text-cream-200/80 text-sm leading-relaxed">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  const quotes = [
+    { quote: "The explanation after each wrong answer was so clear, I finally understood Transitions for real.", name: "Jasur D.", meta: "Samarkand · 1390 SAT", init: "JD" },
+    { quote: "The daily route is genius. I stopped wasting an hour deciding what to study — I just open the app and go.", name: "Madina K.", meta: "Tashkent · aiming 1500", init: "MK" },
+    { quote: "Mock exams feel exactly like Bluebook. On test day my hands were not even shaking.", name: "Timur A.", meta: "Bukhara · 1450 SAT", init: "TA" },
+  ];
+  return (
+    <section id="stories" className="py-24 px-6">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-14">
+          <div className="text-accent text-xs font-semibold uppercase tracking-[0.2em] mb-3">From students</div>
+          <h2 className="font-display text-4xl font-semibold tracking-tight">Real climbs.</h2>
+        </div>
+        <div className="grid md:grid-cols-3 gap-5">
+          {quotes.map((t) => (
+            <div key={t.name} className="bg-cream-50 rounded-3xl border border-coffee-700/10 p-7 hover:shadow-lg transition-shadow">
+              <p className="text-coffee-800 text-sm leading-relaxed mb-5">"{t.quote}"</p>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-coffee-700 text-cream-50 grid place-items-center text-xs font-semibold">{t.init}</div>
+                <div>
+                  <div className="text-sm font-medium">{t.name}</div>
+                  <div className="text-xs text-coffee-500">{t.meta}</div>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* PRICING */}
-      <section id="pricing" className="relative z-10 max-w-6xl mx-auto px-8 py-20 text-center">
-        <div className="mb-12">
-          <div className="text-coffee-600 text-sm font-medium uppercase tracking-widest mb-3">One price. One time.</div>
-          <h2 className="font-display font-medium text-coffee-900 tracking-tight mb-4 max-w-2xl mx-auto" style={{ fontSize: "clamp(2rem, 3.5vw, 2.8rem)" }}>
-            No subscriptions. <em className="italic font-normal text-coffee-600">Ever.</em>
-          </h2>
-          <p className="text-coffee-600 text-lg max-w-2xl mx-auto">Pay once, prep forever. Every drill, every module, every full mock — plus all future updates.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
-          {/* USD */}
-          <div className="bg-cream-50 border border-coffee-700/10 rounded-3xl p-9 text-left">
-            <div className="text-xs text-coffee-600 font-medium uppercase tracking-widest mb-2">🌍 International</div>
-            <h3 className="font-display font-semibold text-2xl text-coffee-900 mb-5">Lifetime access</h3>
-            <div className="font-display text-5xl font-semibold text-coffee-900 mb-1 tracking-tight"><sup className="text-xl">$</sup>1.99</div>
-            <div className="text-coffee-600 text-sm mb-7">one-time payment</div>
-            <ul className="space-y-3 mb-8">
-              {["Unlimited skill drills", "All standalone modules", "Unlimited full SAT mocks", "Hand-written explanations", "Progress tracking", "Bluebook-style tools"].map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-coffee-700 border-b border-dashed border-coffee-700/10 pb-3 last:border-none last:pb-0">
-                  <span className="text-coffee-700 font-semibold">✓</span> {f}
-                </li>
-              ))}
-            </ul>
-            <Link href="/signup" className="block w-full text-center py-4 rounded-full bg-coffee-800 hover:bg-coffee-900 text-cream-50 font-medium">
-              Get started →
-            </Link>
-            <div className="text-xs text-coffee-600 text-center mt-3">Stripe · Visa, Mastercard, Amex</div>
-          </div>
-          {/* UZS */}
-          <div className="bg-coffee-800 text-cream-100 rounded-3xl p-9 text-left scale-[1.02] relative">
-            <div className="absolute top-6 right-6 bg-accent text-coffee-900 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-widest">For Uzbekistan</div>
-            <div className="text-xs text-cream-200 font-medium uppercase tracking-widest mb-2">🇺🇿 O'zbekiston</div>
-            <h3 className="font-display font-semibold text-2xl text-cream-50 mb-5">Lifetime access</h3>
-            <div className="font-display text-5xl font-semibold text-cream-50 mb-1 tracking-tight">19,900 <sup className="text-base">so'm</sup></div>
-            <div className="text-cream-200 text-sm mb-7">one-time payment</div>
-            <ul className="space-y-3 mb-8">
-              {["Unlimited skill drills", "All standalone modules", "Unlimited full SAT mocks", "Hand-written explanations", "Progress tracking", "Bluebook-style tools"].map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-cream-200 border-b border-dashed border-cream-100/10 pb-3 last:border-none last:pb-0">
-                  <span className="text-accent font-semibold">✓</span> {f}
-                </li>
-              ))}
-            </ul>
-            <Link href="/signup" className="block w-full text-center py-4 rounded-full bg-cream-50 hover:bg-cream-100 text-coffee-900 font-medium">
-              Get started →
-            </Link>
-            <div className="text-xs text-cream-200 text-center mt-3">Click · Payme · Uzum</div>
-          </div>
-        </div>
-      </section>
+function FinalCTA() {
+  return (
+    <section className="py-24 px-6">
+      <div className="max-w-3xl mx-auto text-center bg-gradient-to-br from-coffee-800 to-coffee-900 rounded-[2.5rem] px-10 py-16 relative overflow-hidden shadow-2xl shadow-coffee-900/30">
+        <div className="absolute top-[-50%] left-[20%] w-96 h-96 rounded-full bg-accent/15 blur-3xl pointer-events-none" />
+        <h2 className="font-display text-4xl font-semibold text-cream-50 tracking-tight mb-4 relative">
+          Free. All of it. Right now.
+        </h2>
+        <p className="text-cream-200/80 mb-9 max-w-md mx-auto relative">
+          We are in beta and every feature is open — mock exams, the full question bank, vocabulary, community. Just bring the work ethic.
+        </p>
+        <Link href="/signup" className="inline-block bg-cream-50 hover:bg-cream-100 text-coffee-900 font-semibold px-9 py-4 rounded-full transition hover:scale-[1.03] relative">
+          Start climbing →
+        </Link>
+      </div>
+    </section>
+  );
+}
 
-      {/* FOOTER */}
-      <footer className="bg-coffee-900 text-cream-200 mt-16 py-16 relative z-10">
-        <div className="max-w-6xl mx-auto px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div>
-              <Link href="/" className="flex items-center gap-2 mb-4">
-                <span className="w-8 h-8 rounded-lg bg-cream-50 text-coffee-900 grid place-items-center font-display italic font-bold">S</span>
-                <span className="font-display font-semibold text-xl text-cream-50">SATPeaK</span>
-              </Link>
-              <p className="text-cream-200/70 text-sm max-w-xs">A calmer, warmer way to prepare for the digital SAT. Built for ambitious students, everywhere.</p>
-            </div>
-            <div>
-              <h4 className="font-display font-medium text-cream-50 mb-3">Product</h4>
-              {["Features", "Pricing", "Skill list"].map((l) => (
-                <div key={l} className="text-cream-200/70 text-sm py-1 hover:opacity-100">{l}</div>
-              ))}
-            </div>
-            <div>
-              <h4 className="font-display font-medium text-cream-50 mb-3">Company</h4>
-              {["About", "Contact", "Blog"].map((l) => (
-                <div key={l} className="text-cream-200/70 text-sm py-1">{l}</div>
-              ))}
-            </div>
-            <div>
-              <h4 className="font-display font-medium text-cream-50 mb-3">Legal</h4>
-              {["Terms", "Privacy", "Refunds"].map((l) => (
-                <div key={l} className="text-cream-200/70 text-sm py-1">{l}</div>
-              ))}
-            </div>
-          </div>
-          <div className="border-t border-cream-100/10 pt-7 flex justify-between flex-wrap gap-3 text-cream-200/50 text-sm">
-            <div>© 2026 SATPeaK. Not affiliated with College Board.</div>
-            <div>Made with care in Tashkent ☕</div>
-          </div>
+function Footer() {
+  return (
+    <footer className="border-t border-coffee-700/10 py-10 px-6">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-coffee-800 text-cream-50 grid place-items-center font-display italic font-bold text-sm">S</div>
+          <span className="font-display font-semibold text-sm">SATPeaK</span>
+          <span className="text-coffee-500 text-xs">· Digital SAT prep, made in Uzbekistan</span>
         </div>
-      </footer>
-    </div>
+        <div className="text-xs text-coffee-500">
+          © {new Date().getFullYear()} SATPeaK · <a href="https://t.me/ASI_08_30" className="hover:text-coffee-800 transition">Telegram</a>
+        </div>
+      </div>
+    </footer>
   );
 }

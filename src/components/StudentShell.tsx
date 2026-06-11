@@ -80,7 +80,6 @@ export default function StudentShell({
     {
       label: "",
       items: [
-        { href: "/app", label: "Today", icon: "home" },
         { href: "/app/study-plan", label: "Study Plan", icon: "calendar" },
       ],
     },
@@ -124,7 +123,7 @@ export default function StudentShell({
       <aside data-shell="true" className="w-64 bg-cream-50 border-r border-coffee-700/10 flex flex-col fixed h-screen transition-colors duration-300">
         {/* Logo */}
         <div className="px-5 py-5">
-          <Link href="/app" className="flex items-center gap-2.5">
+          <Link href="/app/study-plan" className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-coffee-800 text-cream-50 grid place-items-center font-display italic font-bold text-lg">
               S
             </div>

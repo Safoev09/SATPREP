@@ -337,9 +337,24 @@ export default function PracticeRunner({
           </div>
         )}
 
+        {/* LEFT: embedded passage split from prompt (Bluebook style) */}
+        {section === "reading_writing" && !q.passage_id && splitPrompt(q.prompt).passage && (
+          <div
+            onMouseEnter={() => setPassageFocused(true)}
+            onMouseLeave={() => setPassageFocused(false)}
+            className="w-1/2 border-r border-coffee-700/15 overflow-y-auto p-8 transition-all duration-300"
+          >
+            <Passage
+              text={splitPrompt(q.prompt).passage!}
+              highlightEnabled={highlightOn}
+              userId={userId}
+            />
+          </div>
+        )}
+
         {/* RIGHT: question + choices */}
         <div className={`${
-          section === "reading_writing" && q.passage_id ? "w-1/2" : "w-full max-w-3xl mx-auto"
+          section === "reading_writing" && (q.passage_id || splitPrompt(q.prompt).passage) ? "w-1/2" : "w-full max-w-3xl mx-auto"
         } overflow-y-auto p-8 transition-opacity duration-300 ${
           passageFocused ? "opacity-60" : "opacity-100"
         }`}>
@@ -374,7 +389,11 @@ export default function PracticeRunner({
 
           {/* Prompt */}
           <div className="font-display text-lg text-coffee-900 leading-relaxed mb-4">
-            <RichText text={q.prompt} />
+            <RichText text={
+              section === "reading_writing" && !q.passage_id && splitPrompt(q.prompt).passage
+                ? splitPrompt(q.prompt).question
+                : q.prompt
+            } />
           </div>
 
           {/* LaTeX block */}
@@ -690,4 +709,43 @@ function Passage({
       )}
     </>
   );
+}
+
+// ---- Smart prompt splitter: separates embedded passage from question stem ----
+// Bluebook-style: passage renders on the left, question stem + choices on the right.
+const QUESTION_STEM_PATTERNS = [
+  /^Which choice/i, /^Which finding/i, /^Which quotation/i, /^Which statement/i,
+  /^Based on the text/i, /^Based on the texts/i, /^According to the text/i,
+  /^As used in the text/i, /^The student wants/i, /^What does the/i,
+  /^What is the main/i, /^The author makes/i, /^Which choice best/i,
+];
+
+function splitPrompt(prompt: string): { passage: string | null; question: string } {
+  if (!prompt) return { passage: null, question: prompt };
+  const paragraphs = prompt.split(/\n\s*\n/);
+  if (paragraphs.length < 2) return { passage: null, question: prompt };
+
+  // Find the LAST paragraph that looks like a question stem
+  let stemIndex = -1;
+  for (let i = paragraphs.length - 1; i >= 0; i--) {
+    const p = paragraphs[i].trim();
+    if (QUESTION_STEM_PATTERNS.some((re) => re.test(p))) {
+      stemIndex = i;
+      break;
+    }
+  }
+  // Fallback: last paragraph ends with "?" and passage part is substantial
+  if (stemIndex === -1) {
+    const last = paragraphs[paragraphs.length - 1].trim();
+    if (last.endsWith("?") && paragraphs.slice(0, -1).join(" ").length > 150) {
+      stemIndex = paragraphs.length - 1;
+    }
+  }
+  if (stemIndex <= 0) return { passage: null, question: prompt };
+
+  const passage = paragraphs.slice(0, stemIndex).join("\n\n").trim();
+  const question = paragraphs.slice(stemIndex).join("\n\n").trim();
+  // Only split when the passage part is meaningful (avoid splitting short prompts)
+  if (passage.length < 120) return { passage: null, question: prompt };
+  return { passage, question };
 }
