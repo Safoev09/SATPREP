@@ -27,7 +27,7 @@ export default function GroupChats({ userId, onUnreadChange }: { userId: string;
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
+  
 
   const loadGroups = useCallback(async () => {
     const { data: memberRows } = await supabase
