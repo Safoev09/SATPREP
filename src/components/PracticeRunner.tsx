@@ -318,7 +318,7 @@ export default function PracticeRunner({
       </header>
 
       {/* ===== MAIN CONTENT ===== */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* LEFT: passage (R&W) or nothing (Math) */}
         {section === "reading_writing" && q.passage_id && passages[q.passage_id] && (
           <div
@@ -714,15 +714,22 @@ function Passage({
 // ---- Smart prompt splitter: separates embedded passage from question stem ----
 // Bluebook-style: passage renders on the left, question stem + choices on the right.
 const QUESTION_STEM_PATTERNS = [
+  /^Question:/i,
   /^Which choice/i, /^Which finding/i, /^Which quotation/i, /^Which statement/i,
   /^Based on the text/i, /^Based on the texts/i, /^According to the text/i,
   /^As used in the text/i, /^The student wants/i, /^What does the/i,
   /^What is the main/i, /^The author makes/i, /^Which choice best/i,
+  /^What function/i, /^How does the/i, /^The passage/i,
 ];
 
 function splitPrompt(prompt: string): { passage: string | null; question: string } {
-  if (!prompt) return { passage: null, question: prompt };
-  const paragraphs = prompt.split(/\n\s*\n/);
+  if (!prompt || prompt.length < 150) return { passage: null, question: prompt };
+
+  // Try double newline split first, then single newline
+  let paragraphs = prompt.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+  if (paragraphs.length < 2) {
+    paragraphs = prompt.split(/\n/).map(p => p.trim()).filter(Boolean);
+  }
   if (paragraphs.length < 2) return { passage: null, question: prompt };
 
   // Find the LAST paragraph that looks like a question stem
@@ -734,6 +741,7 @@ function splitPrompt(prompt: string): { passage: string | null; question: string
       break;
     }
   }
+
   // Fallback: last paragraph ends with "?" and passage part is substantial
   if (stemIndex === -1) {
     const last = paragraphs[paragraphs.length - 1].trim();
@@ -741,11 +749,13 @@ function splitPrompt(prompt: string): { passage: string | null; question: string
       stemIndex = paragraphs.length - 1;
     }
   }
+
   if (stemIndex <= 0) return { passage: null, question: prompt };
 
   const passage = paragraphs.slice(0, stemIndex).join("\n\n").trim();
-  const question = paragraphs.slice(stemIndex).join("\n\n").trim();
-  // Only split when the passage part is meaningful (avoid splitting short prompts)
-  if (passage.length < 120) return { passage: null, question: prompt };
+  const question = paragraphs.slice(stemIndex).join("\n\n").trim()
+    .replace(/^Question:\s*/i, ""); // strip "Question:" prefix for cleaner display
+
+  if (passage.length < 100) return { passage: null, question: prompt };
   return { passage, question };
 }

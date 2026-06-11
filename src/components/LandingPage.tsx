@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-cream-100 text-coffee-900 overflow-x-hidden">
+    <div className="min-h-screen bg-cream-100 text-coffee-900 overflow-x-hidden w-full">
       <Header />
       <Hero3D />
       <SocialProof />
@@ -60,7 +60,7 @@ function Hero3D() {
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={() => setTilt({ x: 0, y: 0 })}
-      className="relative pt-36 pb-28 px-6 overflow-hidden"
+      className="relative pt-36 pb-28 px-6 md:px-12 overflow-hidden w-full"
     >
       <div className="absolute top-[-20%] left-[10%] w-[34rem] h-[34rem] rounded-full bg-accent/12 blur-3xl animate-drift1 pointer-events-none" />
       <div className="absolute bottom-[-30%] right-[5%] w-[40rem] h-[40rem] rounded-full bg-beige-300/25 blur-3xl animate-drift2 pointer-events-none" />

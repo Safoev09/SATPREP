@@ -37,6 +37,7 @@ type Props = {
 
 type FormState = {
   prompt: string;
+  prompt_image_url?: string;
   choice_a: string;
   choice_b: string;
   choice_c: string;
@@ -50,6 +51,7 @@ type FormState = {
 
 const emptyForm = (section: "reading_writing" | "math"): FormState => ({
   prompt: "",
+  prompt_image_url: "",
   choice_a: "",
   choice_b: "",
   choice_c: "",
@@ -109,6 +111,7 @@ export default function InlineQuestionCreator({
           skill: form.skill,
           difficulty: form.difficulty,
           prompt: form.prompt.trim(),
+          prompt_image_url: form.prompt_image_url?.trim() || null,
           choice_a: form.choice_a.trim(),
           choice_b: form.choice_b.trim(),
           choice_c: form.choice_c.trim(),
@@ -223,6 +226,12 @@ export default function InlineQuestionCreator({
             />
           </label>
 
+          {/* Image upload for Math / charts */}
+          <ImageUpload
+            currentUrl={form.prompt_image_url ?? ""}
+            onUploaded={(url) => setForm({ ...form, prompt_image_url: url })}
+          />
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {(["A", "B", "C", "D"] as const).map((letter) => {
               const fieldName = `choice_${letter.toLowerCase()}` as "choice_a" | "choice_b" | "choice_c" | "choice_d";
@@ -314,6 +323,49 @@ export default function InlineQuestionCreator({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---- Reusable image uploader for question images ----
+function ImageUpload({ currentUrl, onUploaded }: { currentUrl: string; onUploaded: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { setError("File too large (max 5 MB)."); return; }
+    setUploading(true);
+    setError(null);
+    const fileName = `question-${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+    const { data, error: uploadError } = await supabase.storage
+      .from("question-images")
+      .upload(fileName, file, { upsert: true });
+    if (uploadError) { setError(uploadError.message); setUploading(false); return; }
+    const { data: urlData } = supabase.storage.from("question-images").getPublicUrl(data.path);
+    onUploaded(urlData.publicUrl);
+    setUploading(false);
+  };
+
+  return (
+    <div className="space-y-2">
+      <span className="text-xs font-medium text-coffee-700 uppercase tracking-wide">Image / diagram (optional)</span>
+      <div className="flex items-center gap-3">
+        <label className="cursor-pointer bg-cream-100 hover:bg-cream-200 border border-coffee-700/15 rounded-xl px-4 py-2 text-sm text-coffee-700 transition">
+          {uploading ? "Uploading…" : "📎 Upload image"}
+          <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
+        </label>
+        {currentUrl && (
+          <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={currentUrl} alt="preview" className="h-10 w-16 object-cover rounded-lg border border-coffee-700/15" />
+            <button onClick={() => onUploaded("")} className="text-xs text-red-600 hover:text-red-800">Remove</button>
+          </div>
+        )}
+      </div>
+      {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
   );
 }
