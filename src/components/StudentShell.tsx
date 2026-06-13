@@ -103,6 +103,7 @@ export default function StudentShell({
       items: [
         { href: "/app/progress", label: "Score Map", icon: "chart" },
         { href: "/app/review", label: "Review Queue", icon: "bookmark" },
+        { href: "/app/leaderboard", label: "Leaderboard", icon: "trophy" },
       ],
     },
     {
@@ -245,7 +246,11 @@ export default function StudentShell({
                 <Link href="/app/settings" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-coffee-700 hover:bg-cream-100/60 transition">
                   Settings
                 </Link>
-                {/* Premium is free during beta */}
+                {!hasLifetimeAccess && (
+                  <Link href="/app/upgrade" onClick={() => setMenuOpen(false)} className="block px-4 py-2.5 text-sm text-accent font-medium hover:bg-cream-100/60 transition">
+                    ✨ Upgrade to premium
+                  </Link>
+                )}
                 <button onClick={logout} className="block w-full text-left px-4 py-2.5 text-sm text-red-700 hover:bg-cream-100/60 border-t border-coffee-700/10 transition">
                   Sign out
                 </button>
@@ -273,6 +278,8 @@ function NavIcon({ name }: { name: string; active?: boolean }) {
     strokeLinejoin: "round" as const,
   };
   switch (name) {
+    case "trophy":
+      return <svg {...common}><path d="M6 3h12v8a6 6 0 0 1-12 0z" /><path d="M6 7H3a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4" /><path d="M18 7h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4" /><path d="M12 19v-4" /><path d="M8 23h8" /></svg>;
     case "home":
       return <svg {...common}><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M9 21V12h6v9" /></svg>;
     case "target":
