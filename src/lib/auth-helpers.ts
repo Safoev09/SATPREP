@@ -15,9 +15,11 @@ export type UserProfile = {
   current_streak: number;
   longest_streak: number;
   last_activity_date: string | null;
+  weekly_xp: number;
+  tests_completed: number;
+  rival_disabled: boolean;
 };
 
-// Get the current user + their profile (server-side). Returns null if not logged in.
 export async function getUserAndProfile(): Promise<{
   email: string;
   profile: UserProfile;
@@ -28,22 +30,28 @@ export async function getUserAndProfile(): Promise<{
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, full_name, is_admin, has_lifetime_access, diagnostic_completed, previous_score, target_score, region, target_exam_date, xp, current_streak, longest_streak, last_activity_date")
+    .select("id, full_name, is_admin, has_lifetime_access, diagnostic_completed, previous_score, target_score, region, target_exam_date, xp, current_streak, longest_streak, last_activity_date, weekly_xp, tests_completed, rival_disabled")
     .eq("id", user.id)
     .single();
 
   if (!profile) return null;
-  return { email: user.email ?? "", profile };
+
+  return {
+    email: user.email ?? "",
+    profile: {
+      ...profile,
+      weekly_xp: profile.weekly_xp ?? 0,
+      tests_completed: profile.tests_completed ?? 0,
+      rival_disabled: profile.rival_disabled ?? false,
+    },
+  };
 }
 
-// Server-side guard: redirect to the right place based on user role and onboarding state.
-// Call this from page components to enforce access.
 export async function requireStudent() {
   const data = await getUserAndProfile();
   if (!data) redirect("/login");
   if (data.profile.is_admin) redirect("/admin");
 
-  // Onboarding incomplete? Force them through it.
   if (!data.profile.target_score || !data.profile.region || !data.profile.target_exam_date) {
     redirect("/onboarding");
   }
@@ -58,7 +66,6 @@ export async function requireAdmin() {
   return data;
 }
 
-// For onboarding page itself — student must be logged in, but onboarding may be incomplete.
 export async function requireLoggedInStudent() {
   const data = await getUserAndProfile();
   if (!data) redirect("/login");
