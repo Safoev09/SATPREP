@@ -16,18 +16,16 @@ export default function GroupChats({ userId, onUnreadChange }: { userId: string;
   const [showCreate, setShowCreate] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const [friends, setFriends] = useState<Profile[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [creating, setCreating] = useState(false);
   const [myName, setMyName] = useState("Student");
+  const bottomRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
-  // Load current user's name
   useEffect(() => {
     supabase.from("profiles").select("full_name").eq("id", userId).single()
       .then(({ data }) => { if (data?.full_name) setMyName(data.full_name); });
-  }, [userId, supabase]);
-  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
-  const [creating, setCreating] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadGroups = useCallback(async () => {
     const { data: memberRows } = await supabase
@@ -136,9 +134,9 @@ export default function GroupChats({ userId, onUnreadChange }: { userId: string;
     setSending(true);
     await supabase.from("messages").insert({
       user_id: userId,
-      author_name: myName,
       conversation_id: activeGroupId,
       content: draft.trim(),
+      channel: "group",
       message_type: "text",
     });
     setDraft("");
@@ -150,21 +148,22 @@ export default function GroupChats({ userId, onUnreadChange }: { userId: string;
     if (!newGroupName.trim() || creating) return;
     setCreating(true);
 
-    // Use SECURITY DEFINER function to bypass RLS for group creation
-    const { data: convId, error } = await supabase.rpc("create_group_with_members", {
-      group_name: newGroupName.trim(),
-      creator_id: userId,
-      member_ids: selectedFriends,
-    });
+    const { data: conv } = await supabase
+      .from("conversations")
+      .insert({ type: "group", name: newGroupName.trim(), created_by: userId })
+      .select("id")
+      .single();
 
-    if (!error && convId) {
+    if (conv) {
+      const members = [userId, ...selectedFriends];
+      await supabase.from("conversation_members").insert(
+        members.map((uid) => ({ conversation_id: conv.id, user_id: uid }))
+      );
       setShowCreate(false);
       setNewGroupName("");
       setSelectedFriends([]);
       loadGroups();
-      openGroup(convId);
-    } else {
-      console.error("Group creation failed:", error);
+      openGroup(conv.id);
     }
     setCreating(false);
   };

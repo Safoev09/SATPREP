@@ -51,14 +51,27 @@ export default function FriendPanel({ userId, onStartDM }: { userId: string; onS
     setSearchResult(null);
 
     const isId = q.startsWith("#");
-    const query = isId
-      ? supabase.from("profiles").select("id, full_name, username, friend_id").eq("friend_id", q.slice(1)).single()
-      : supabase.from("profiles").select("id, full_name, username, friend_id").eq("username", q.startsWith("@") ? q.slice(1) : q).single();
+    const searchVal = isId ? q.slice(1) : (q.startsWith("@") ? q.slice(1) : q).toLowerCase();
 
-    const { data, error } = await query;
+    // Use ilike for case-insensitive username search
+    const { data, error } = isId
+      ? await supabase.from("profiles").select("id, full_name, username, friend_id").eq("friend_id", searchVal).maybeSingle()
+      : await supabase.from("profiles").select("id, full_name, username, friend_id").ilike("username", searchVal).maybeSingle();
+
     setSearching(false);
-    if (error || !data) { setSearchError("No user found with that username or ID."); return; }
-    if (data.id === userId) { setSearchError("That's you!"); return; }
+
+    if (error) {
+      setSearchError("Search failed. Please try again.");
+      return;
+    }
+    if (!data) {
+      setSearchError(isId ? `No user found with ID #${searchVal}` : `No user found with username @${searchVal}`);
+      return;
+    }
+    if (data.id === userId) {
+      setSearchError("That's your own account!");
+      return;
+    }
     setSearchResult(data);
   };
 

@@ -217,7 +217,9 @@ export default function InlineQuestionCreator({
 
           <label className="block">
             <span className="text-xs font-medium text-coffee-700 uppercase tracking-wide">Passage + Question prompt</span>
+            <FormatToolbar textareaId="iqc-prompt" />
             <textarea
+              id="iqc-prompt"
               value={form.prompt}
               onChange={(e) => setForm({ ...form, prompt: e.target.value })}
               rows={8}
@@ -366,6 +368,63 @@ function ImageUpload({ currentUrl, onUploaded }: { currentUrl: string; onUploade
         )}
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}
+    </div>
+  );
+}
+
+// ---- Formatting toolbar for text wrapping (bold, italic, underline) ----
+// Wraps selected text in the target textarea with markdown-style markers.
+// Underline uses <u>text</u>, bold uses **text**, italic uses *text*.
+// The RichText renderer already handles these markers for display.
+function FormatToolbar({ textareaId }: { textareaId: string }) {
+  const wrap = (before: string, after: string) => {
+    const el = document.getElementById(textareaId) as HTMLTextAreaElement | null;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selected = el.value.slice(start, end);
+    if (!selected) return; // must select text first
+    const newVal = el.value.slice(0, start) + before + selected + after + el.value.slice(end);
+    // Fire React synthetic event so state updates
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+    nativeInputValueSetter?.call(el, newVal);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    // Restore selection
+    requestAnimationFrame(() => {
+      el.focus();
+      el.selectionStart = start + before.length;
+      el.selectionEnd = end + before.length;
+    });
+  };
+
+  return (
+    <div className="flex items-center gap-1 mt-1.5 mb-1">
+      <span className="text-[10px] text-coffee-500 uppercase tracking-wide mr-1">Format:</span>
+      <button
+        type="button"
+        title="Underline selected text (renders as underline in questions)"
+        onClick={() => wrap("<u>", "</u>")}
+        className="px-2.5 py-1 rounded-lg bg-cream-200 hover:bg-cream-300 text-coffee-700 text-xs font-medium transition border border-coffee-700/10"
+      >
+        <u>U</u>
+      </button>
+      <button
+        type="button"
+        title="Bold selected text"
+        onClick={() => wrap("**", "**")}
+        className="px-2.5 py-1 rounded-lg bg-cream-200 hover:bg-cream-300 text-coffee-700 text-xs font-bold transition border border-coffee-700/10"
+      >
+        B
+      </button>
+      <button
+        type="button"
+        title="Italic selected text"
+        onClick={() => wrap("*", "*")}
+        className="px-2.5 py-1 rounded-lg bg-cream-200 hover:bg-cream-300 text-coffee-700 text-xs italic transition border border-coffee-700/10"
+      >
+        I
+      </button>
+      <span className="text-[10px] text-coffee-400 ml-1">Select text first, then click</span>
     </div>
   );
 }
