@@ -8,54 +8,53 @@ export default async function ProgressPage() {
   const { profile } = await requireStudent();
   const supabase = createClient();
 
-  // All answers with full data for DNA
-  const { data: allAnswers } = await supabase
+  // Fetch answers — only columns that actually exist in the answers table
+  const { data: rawAnswers } = await supabase
     .from("answers")
-    .select(`
-      is_correct,
-      time_spent_seconds,
-      was_changed,
-      was_skipped,
-      flagged_for_review,
-      difficulty,
-      section,
-      skill,
-      questions(skill, section, difficulty)
-    `)
+    .select("question_id, is_correct, time_spent_seconds, flagged_for_review, was_changed, was_skipped, created_at")
     .eq("user_id", profile.id)
     .order("created_at", { ascending: false })
     .limit(500);
 
-  // Weekly answers (last 7 days)
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { data: weeklyAnswers } = await supabase
-    .from("answers")
-    .select("is_correct, time_spent_seconds, was_changed, was_skipped, difficulty, section, skill, questions(skill, section, difficulty)")
-    .eq("user_id", profile.id)
-    .gte("created_at", weekAgo);
+  // Fetch question metadata separately (skill, section, difficulty definitely exist here)
+  const questionIds = [...new Set((rawAnswers ?? []).map((a: any) => a.question_id))];
 
-  // Normalise — join questions data into answer rows
-  const normalise = (raw: any[]) => raw.map((a: any) => ({
+  const { data: questionMeta } = questionIds.length > 0
+    ? await supabase
+        .from("questions")
+        .select("id, skill, section, difficulty")
+        .in("id", questionIds)
+    : { data: [] };
+
+  // Build a lookup map
+  const qMap = Object.fromEntries(
+    (questionMeta ?? []).map((q: any) => [q.id, q])
+  );
+
+  // Merge answer + question metadata
+  const mergedAnswers = (rawAnswers ?? []).map((a: any) => ({
     is_correct: a.is_correct,
     time_spent_seconds: a.time_spent_seconds ?? null,
     was_changed: a.was_changed ?? false,
     was_skipped: a.was_skipped ?? false,
     flagged_for_review: a.flagged_for_review ?? false,
-    difficulty: a.difficulty ?? a.questions?.difficulty ?? null,
-    section: a.section ?? a.questions?.section ?? null,
-    skill: a.skill ?? a.questions?.skill ?? null,
+    difficulty: qMap[a.question_id]?.difficulty ?? null,
+    section: qMap[a.question_id]?.section ?? null,
+    skill: qMap[a.question_id]?.skill ?? null,
+    created_at: a.created_at,
   }));
 
-  const normalAnswers = normalise(allAnswers ?? []);
-  const normalWeekly = normalise(weeklyAnswers ?? []);
+  // Weekly answers
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const weeklyAnswers = mergedAnswers.filter(a => a.created_at && a.created_at >= weekAgo);
 
   // Compute DNA
-  const dna = computeMistakeDNA(normalAnswers, profile.previous_score, normalWeekly);
+  const dna = computeMistakeDNA(mergedAnswers, profile.previous_score, weeklyAnswers);
 
-  // Skill stats for accuracy bars
+  // Skill stats
   const bySkill: Record<string, { correct: number; total: number; recent: number; recentCorrect: number }> = {};
-  (allAnswers ?? []).forEach((a: any, idx: number) => {
-    const skill = a.skill ?? a.questions?.skill;
+  mergedAnswers.forEach((a, idx) => {
+    const skill = a.skill;
     if (!skill) return;
     if (!bySkill[skill]) bySkill[skill] = { correct: 0, total: 0, recent: 0, recentCorrect: 0 };
     bySkill[skill].total++;
@@ -73,7 +72,9 @@ export default async function ProgressPage() {
     correct: v.correct,
     total: v.total,
     pct: v.total > 0 ? Math.round((v.correct / v.total) * 100) : 0,
-    trend: v.recent >= 3 ? Math.round((v.recentCorrect / v.recent) * 100) - Math.round((v.correct / v.total) * 100) : 0,
+    trend: v.recent >= 3
+      ? Math.round((v.recentCorrect / v.recent) * 100) - Math.round((v.correct / v.total) * 100)
+      : 0,
   })).sort((a, b) => a.pct - b.pct);
 
   // Sessions
@@ -85,7 +86,7 @@ export default async function ProgressPage() {
     .order("completed_at", { ascending: false })
     .limit(20);
 
-  // Weekly snapshots for trend chart
+  // Weekly snapshots
   const { data: snapshots } = await supabase
     .from("dna_weekly_snapshots")
     .select("week_start, accuracy, xp_earned, sessions")

@@ -196,17 +196,8 @@ export default function ProfileEditor({
 
         <div>
           <label>Plan</label>
-          <div className="text-sm text-coffee-800">
-            {hasLifetimeAccess ? (
-              <span className="text-green-700 font-medium">✨ Lifetime access — all features unlocked</span>
-            ) : (
-              <span>
-                Free preview ·{" "}
-                <Link href="/app/upgrade" className="text-coffee-800 underline">
-                  Upgrade for lifetime access
-                </Link>
-              </span>
-            )}
+          <div className="text-sm text-green-700 font-medium bg-green-50 border border-green-200 rounded-xl px-4 py-2.5">
+            ✅ Full access — SATPeaK is completely free during beta.
           </div>
         </div>
 
