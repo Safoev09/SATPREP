@@ -75,14 +75,19 @@ export default async function ProgressPage() {
     .order("completed_at", { ascending: false })
     .limit(20);
 
-  const { data: snapshots } = await supabase
-    .from("dna_weekly_snapshots")
-    .select("week_start, accuracy, xp_earned, sessions")
-    .eq("user_id", profile.id)
-    .order("week_start", { ascending: true })
-    .limit(8)
-    .maybeSingle().then(() => ({ data: [] }))
-    .catch(() => ({ data: [] }));
+  // Weekly snapshots - table may not exist yet, so we safely default to empty
+  let snapshots: any[] = [];
+  try {
+    const { data: snapshotData } = await supabase
+      .from("dna_weekly_snapshots")
+      .select("week_start, accuracy, xp_earned, sessions")
+      .eq("user_id", profile.id)
+      .order("week_start", { ascending: true })
+      .limit(8);
+    snapshots = snapshotData ?? [];
+  } catch {
+    snapshots = [];
+  }
 
   return (
     <ScoreMapView
