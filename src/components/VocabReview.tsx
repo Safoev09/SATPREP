@@ -15,7 +15,6 @@ type UserWord = {
   times_seen: number;
 };
 
-// Leitner box intervals (in days): how soon to review again based on the new box
 const BOX_INTERVALS_DAYS = [1, 3, 7, 14, 30];
 
 export default function VocabReview({
@@ -31,15 +30,17 @@ export default function VocabReview({
   const [revealed, setRevealed] = useState(false);
   const [stats, setStats] = useState({ correct: 0, missed: 0 });
   const [done, setDone] = useState(false);
+  const [grading, setGrading] = useState(false);
 
   const current = queue[idx];
   const progress = ((idx + (revealed ? 0.5 : 0)) / queue.length) * 100;
+  const nextBoxInterval = BOX_INTERVALS_DAYS[Math.min((current?.box ?? 1), 4)];
 
   const grade = async (knewIt: boolean) => {
-    // Advance the box on success, demote to box 1 on failure
-    const newBox = knewIt
-      ? Math.min((current.box ?? 1) + 1, 5)
-      : 1;
+    if (grading) return;
+    setGrading(true);
+
+    const newBox = knewIt ? Math.min((current.box ?? 1) + 1, 5) : 1;
     const intervalDays = BOX_INTERVALS_DAYS[newBox - 1];
     const nextReview = new Date();
     nextReview.setDate(nextReview.getDate() + intervalDays);
@@ -65,42 +66,33 @@ export default function VocabReview({
       setIdx(idx + 1);
       setRevealed(false);
     }
+    setGrading(false);
   };
 
   if (done) {
     return (
-      <div className="p-8 max-w-2xl mx-auto">
-        <div className="bg-cream-50 border border-coffee-700/10 rounded-3xl p-10 text-center">
-          <div className="text-5xl mb-3">✨</div>
-          <h1 className="font-display text-3xl font-semibold text-coffee-900 mb-1">
-            Review complete
+      <div className="min-h-[calc(100vh-65px)] flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-cream-50 border border-coffee-700/10 rounded-3xl p-10 text-center shadow-lg">
+          <div className="text-6xl mb-4">✨</div>
+          <h1 className="font-display text-3xl font-semibold text-coffee-900 mb-2">
+            Review complete!
           </h1>
-          <p className="text-coffee-600 mb-6">
-            You reviewed {queue.length} words.
-          </p>
-          <div className="flex justify-center gap-6 mb-8">
-            <div>
-              <div className="font-display text-3xl font-semibold text-coffee-900">
-                {stats.correct}
-              </div>
-              <div className="text-xs text-coffee-500 uppercase tracking-wider">
-                Knew it
-              </div>
+          <p className="text-coffee-600 mb-8">You reviewed {queue.length} words today.</p>
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+              <div className="font-display text-4xl font-semibold text-green-700">{stats.correct}</div>
+              <div className="text-xs text-green-600 uppercase tracking-wider mt-1">Knew it</div>
             </div>
-            <div>
-              <div className="font-display text-3xl font-semibold text-coffee-900">
-                {stats.missed}
-              </div>
-              <div className="text-xs text-coffee-500 uppercase tracking-wider">
-                Try again soon
-              </div>
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+              <div className="font-display text-4xl font-semibold text-red-600">{stats.missed}</div>
+              <div className="text-xs text-red-500 uppercase tracking-wider mt-1">Try again</div>
             </div>
           </div>
           <Link
             href="/app/vocabulary"
-            className="inline-block bg-coffee-800 text-cream-50 px-6 py-2.5 rounded-full text-sm font-medium hover:scale-[1.02] transition"
+            className="inline-block bg-coffee-800 text-cream-50 px-8 py-3 rounded-full text-sm font-medium hover:bg-coffee-900 transition"
           >
-            Back to vocabulary
+            Back to vocabulary →
           </Link>
         </div>
       </div>
@@ -108,81 +100,109 @@ export default function VocabReview({
   }
 
   return (
-    <div className="min-h-[calc(100vh-65px)] flex flex-col">
-      <div className="px-8 py-5 border-b border-coffee-700/10">
-        <div className="flex items-center justify-between gap-4 max-w-3xl mx-auto">
-          <Link
-            href="/app/vocabulary"
-            className="text-sm text-coffee-600 hover:text-coffee-900 transition"
-          >
+    <div className="min-h-[calc(100vh-65px)] flex flex-col bg-cream-100">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-coffee-700/10 bg-cream-50">
+        <div className="flex items-center justify-between gap-4 max-w-2xl mx-auto">
+          <Link href="/app/vocabulary" className="text-sm text-coffee-600 hover:text-coffee-900 transition">
             ← Exit
           </Link>
           <div className="text-xs text-accent uppercase tracking-wider font-semibold">
-            Spaced review · {idx + 1} of {queue.length}
+            {idx + 1} of {queue.length}
           </div>
-          <div className="text-xs text-coffee-500">
-            ✓ {stats.correct} · ✗ {stats.missed}
+          <div className="flex items-center gap-3 text-xs text-coffee-500">
+            <span className="text-green-600 font-semibold">✓ {stats.correct}</span>
+            <span className="text-red-500 font-semibold">✗ {stats.missed}</span>
           </div>
         </div>
-        <div className="max-w-3xl mx-auto mt-3">
-          <div className="h-1 bg-cream-100 rounded-full overflow-hidden">
+        {/* Progress bar */}
+        <div className="max-w-2xl mx-auto mt-3">
+          <div className="h-1.5 bg-cream-200 rounded-full overflow-hidden">
             <div
-              className="h-full bg-accent rounded-full transition-all duration-500"
+              className="h-full bg-accent rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
       </div>
 
+      {/* Card area */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-xl">
-          <div className="bg-cream-50 border border-coffee-700/10 rounded-3xl p-10 min-h-[300px] flex flex-col justify-center text-center">
-            <div className="font-display text-4xl sm:text-5xl font-semibold text-coffee-900 mb-2">
-              {current.word}
-            </div>
-            <div className="text-xs text-coffee-500 mb-6">
-              Box {current.box} of 5
+        <div className="w-full max-w-lg space-y-4">
+
+          {/* The card — tap ANYWHERE to reveal */}
+          <div
+            onClick={() => !revealed && setRevealed(true)}
+            className={`bg-cream-50 border-2 rounded-3xl p-10 text-center shadow-md transition-all duration-150 select-none ${
+              !revealed
+                ? "border-coffee-700/15 cursor-pointer hover:border-accent/40 hover:shadow-lg active:scale-[0.99]"
+                : "border-coffee-700/15 cursor-default"
+            }`}
+            style={{ minHeight: "280px", display: "flex", flexDirection: "column", justifyContent: "center" }}
+          >
+            {/* Box indicator */}
+            <div className="flex justify-center gap-1 mb-5">
+              {[1,2,3,4,5].map(b => (
+                <div
+                  key={b}
+                  className={`h-1.5 w-8 rounded-full transition-colors ${
+                    b <= (current.box ?? 1) ? "bg-accent" : "bg-cream-200"
+                  }`}
+                />
+              ))}
             </div>
 
-            {revealed ? (
-              <div className="animate-[fadeup_0.4s_ease-out]">
-                <div className="text-lg text-coffee-700 leading-relaxed">
+            {/* Word */}
+            <div className="font-display text-5xl sm:text-6xl font-semibold text-coffee-900 mb-3 leading-tight">
+              {current.word}
+            </div>
+
+            {/* Reveal hint or definition */}
+            {!revealed ? (
+              <div className="mt-4">
+                <div className="text-sm text-coffee-400">Tap anywhere to reveal</div>
+              </div>
+            ) : (
+              <div>
+                <div className="w-12 h-px bg-coffee-200 mx-auto mb-4" />
+                <div className="text-lg text-coffee-700 leading-relaxed font-medium">
                   {current.definition}
                 </div>
                 {current.example && (
-                  <div className="mt-4 text-sm italic text-coffee-500">
+                  <div className="mt-4 text-sm italic text-coffee-500 leading-relaxed">
                     "{current.example}"
                   </div>
                 )}
               </div>
-            ) : (
-              <button
-                onClick={() => setRevealed(true)}
-                className="text-sm text-accent hover:underline mt-6"
-              >
-                Show definition
-              </button>
             )}
           </div>
 
+          {/* Grading buttons — appear instantly when revealed */}
           {revealed && (
-            <div className="mt-6 grid grid-cols-2 gap-3 animate-[fadeup_0.4s_ease-out]">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => grade(false)}
-                className="px-6 py-3.5 rounded-2xl bg-cream-100 text-coffee-800 hover:scale-[1.02] hover:bg-cream-200 transition"
+                disabled={grading}
+                className="px-6 py-4 rounded-2xl bg-cream-50 border-2 border-red-200 text-coffee-800 hover:bg-red-50 hover:border-red-300 active:scale-[0.98] transition disabled:opacity-50 text-left"
               >
-                <div className="font-medium">Didn't know</div>
-                <div className="text-xs text-coffee-500">Review tomorrow</div>
+                <div className="font-semibold text-red-700">✗ Didn't know</div>
+                <div className="text-xs text-coffee-500 mt-0.5">Back to tomorrow</div>
               </button>
               <button
                 onClick={() => grade(true)}
-                className="px-6 py-3.5 rounded-2xl bg-coffee-800 text-cream-50 hover:scale-[1.02] transition"
+                disabled={grading}
+                className="px-6 py-4 rounded-2xl bg-coffee-800 border-2 border-coffee-800 text-cream-50 hover:bg-coffee-900 active:scale-[0.98] transition disabled:opacity-50 text-left"
               >
-                <div className="font-medium">Knew it ✓</div>
-                <div className="text-xs text-cream-100/70">
-                  Next: {BOX_INTERVALS_DAYS[Math.min(current.box, 4)]}d
-                </div>
+                <div className="font-semibold">✓ Knew it</div>
+                <div className="text-xs text-cream-200/70 mt-0.5">Next in {nextBoxInterval}d</div>
               </button>
+            </div>
+          )}
+
+          {/* Keyboard shortcut hint */}
+          {revealed && (
+            <div className="text-center text-xs text-coffee-400">
+              Press <kbd className="bg-cream-200 px-1.5 py-0.5 rounded text-coffee-600">←</kbd> didn't know · <kbd className="bg-cream-200 px-1.5 py-0.5 rounded text-coffee-600">→</kbd> knew it
             </div>
           )}
         </div>

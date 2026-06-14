@@ -217,9 +217,7 @@ export default function InlineQuestionCreator({
 
           <label className="block">
             <span className="text-xs font-medium text-coffee-700 uppercase tracking-wide">Passage + Question prompt</span>
-            <FormatToolbar textareaId="iqc-prompt" />
             <textarea
-              id="iqc-prompt"
               value={form.prompt}
               onChange={(e) => setForm({ ...form, prompt: e.target.value })}
               rows={8}
@@ -227,6 +225,14 @@ export default function InlineQuestionCreator({
               className="mt-1 w-full bg-cream-100 border border-coffee-700/15 rounded-xl px-3 py-2 text-sm font-mono leading-relaxed"
             />
           </label>
+
+          {/* LaTeX helper — only shown for Math section */}
+          {section === "math" && (
+            <LatexHelper
+              prompt={form.prompt}
+              onInsert={(latex) => setForm({ ...form, prompt: form.prompt + latex })}
+            />
+          )}
 
           {/* Image upload for Math / charts */}
           <ImageUpload
@@ -372,59 +378,88 @@ function ImageUpload({ currentUrl, onUploaded }: { currentUrl: string; onUploade
   );
 }
 
-// ---- Formatting toolbar for text wrapping (bold, italic, underline) ----
-// Wraps selected text in the target textarea with markdown-style markers.
-// Underline uses <u>text</u>, bold uses **text**, italic uses *text*.
-// The RichText renderer already handles these markers for display.
-function FormatToolbar({ textareaId }: { textareaId: string }) {
-  const wrap = (before: string, after: string) => {
-    const el = document.getElementById(textareaId) as HTMLTextAreaElement | null;
-    if (!el) return;
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    const selected = el.value.slice(start, end);
-    if (!selected) return; // must select text first
-    const newVal = el.value.slice(0, start) + before + selected + after + el.value.slice(end);
-    // Fire React synthetic event so state updates
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
-    nativeInputValueSetter?.call(el, newVal);
-    el.dispatchEvent(new Event("input", { bubbles: true }));
-    // Restore selection
-    requestAnimationFrame(() => {
-      el.focus();
-      el.selectionStart = start + before.length;
-      el.selectionEnd = end + before.length;
-    });
-  };
+// ---- LaTeX Helper for Math questions ----
+function LatexHelper({ prompt, onInsert }: { prompt: string; onInsert: (latex: string) => void }) {
+  const [showPreview, setShowPreview] = useState(false);
+
+  const snippets = [
+    { label: "Fraction", latex: "\\frac{a}{b}", display: "a/b" },
+    { label: "Square root", latex: "\\sqrt{x}", display: "√x" },
+    { label: "Power", latex: "x^{2}", display: "x²" },
+    { label: "Subscript", latex: "x_{1}", display: "x₁" },
+    { label: "Multiply ×", latex: "\\times", display: "×" },
+    { label: "Divide ÷", latex: "\\div", display: "÷" },
+    { label: "Not equal ≠", latex: "\\neq", display: "≠" },
+    { label: "Less/equal ≤", latex: "\\leq", display: "≤" },
+    { label: "Greater/equal ≥", latex: "\\geq", display: "≥" },
+    { label: "π", latex: "\\pi", display: "π" },
+    { label: "Infinity ∞", latex: "\\infty", display: "∞" },
+    { label: "Quadratic", latex: "ax^{2}+bx+c=0", display: "ax²+bx+c=0" },
+    { label: "Linear", latex: "y=mx+b", display: "y=mx+b" },
+    { label: "Absolute value", latex: "|x|", display: "|x|" },
+  ];
 
   return (
-    <div className="flex items-center gap-1 mt-1.5 mb-1">
-      <span className="text-[10px] text-coffee-500 uppercase tracking-wide mr-1">Format:</span>
-      <button
-        type="button"
-        title="Underline selected text (renders as underline in questions)"
-        onClick={() => wrap("<u>", "</u>")}
-        className="px-2.5 py-1 rounded-lg bg-cream-200 hover:bg-cream-300 text-coffee-700 text-xs font-medium transition border border-coffee-700/10"
-      >
-        <u>U</u>
-      </button>
-      <button
-        type="button"
-        title="Bold selected text"
-        onClick={() => wrap("**", "**")}
-        className="px-2.5 py-1 rounded-lg bg-cream-200 hover:bg-cream-300 text-coffee-700 text-xs font-bold transition border border-coffee-700/10"
-      >
-        B
-      </button>
-      <button
-        type="button"
-        title="Italic selected text"
-        onClick={() => wrap("*", "*")}
-        className="px-2.5 py-1 rounded-lg bg-cream-200 hover:bg-cream-300 text-coffee-700 text-xs italic transition border border-coffee-700/10"
-      >
-        I
-      </button>
-      <span className="text-[10px] text-coffee-400 ml-1">Select text first, then click</span>
+    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="text-xs font-semibold text-blue-800 uppercase tracking-wide">
+          📐 Math / LaTeX helper
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowPreview(v => !v)}
+          className="text-xs text-blue-600 hover:text-blue-800 underline"
+        >
+          {showPreview ? "Hide preview" : "Show preview"}
+        </button>
+      </div>
+
+      <p className="text-xs text-blue-700">
+        Wrap math in <code className="bg-blue-100 px-1 rounded">$...$</code> for inline.
+        Example: <code className="bg-blue-100 px-1 rounded">The value of $x^2 + 3x$ when $x=2$ is</code>
+      </p>
+
+      <div className="flex flex-wrap gap-1.5">
+        {snippets.map(s => (
+          <button
+            key={s.label}
+            type="button"
+            onClick={() => onInsert(` $${s.latex}$ `)}
+            title={`Insert: $${s.latex}$`}
+            className="bg-white border border-blue-200 text-blue-800 text-xs px-2.5 py-1 rounded-lg hover:bg-blue-100 transition"
+          >
+            {s.display}
+          </button>
+        ))}
+      </div>
+
+      {showPreview && prompt && (
+        <div className="bg-white border border-blue-200 rounded-lg p-3">
+          <div className="text-[10px] text-blue-600 uppercase tracking-wide mb-2">Preview</div>
+          <RichTextPreview text={prompt} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RichTextPreview({ text }: { text: string }) {
+  // Split by $...$ inline math
+  const parts = text.split(/(\$[^$]+\$)/g);
+  return (
+    <div className="text-sm text-coffee-900 leading-relaxed whitespace-pre-wrap">
+      {parts.map((part, i) => {
+        if (part.startsWith("$") && part.endsWith("$")) {
+          const math = part.slice(1, -1);
+          try {
+            const { InlineMath } = require("react-katex");
+            return <InlineMath key={i} math={math} />;
+          } catch {
+            return <code key={i} className="bg-yellow-100 px-1 rounded text-xs">{math}</code>;
+          }
+        }
+        return <span key={i}>{part}</span>;
+      })}
     </div>
   );
 }
