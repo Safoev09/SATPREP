@@ -8,35 +8,29 @@ export default async function ProgressPage() {
   const { profile } = await requireStudent();
   const supabase = createClient();
 
-  // Fetch answers — only columns that actually exist in the answers table
+  // Step 1: fetch answers with ONLY columns that exist in the answers table
   const { data: rawAnswers } = await supabase
     .from("answers")
-    .select("question_id, is_correct, time_spent_seconds, flagged_for_review, was_changed, was_skipped, created_at")
+    .select("question_id, is_correct, time_spent_seconds, flagged_for_review, created_at")
     .eq("user_id", profile.id)
     .order("created_at", { ascending: false })
     .limit(500);
 
-  // Fetch question metadata separately (skill, section, difficulty definitely exist here)
-  const questionIds = [...new Set((rawAnswers ?? []).map((a: any) => a.question_id))];
-
-  const { data: questionMeta } = questionIds.length > 0
-    ? await supabase
-        .from("questions")
-        .select("id, skill, section, difficulty")
-        .in("id", questionIds)
+  // Step 2: fetch question metadata separately (skill/section/difficulty are on questions table)
+  const qIds = [...new Set((rawAnswers ?? []).map((a: any) => a.question_id).filter(Boolean))];
+  const { data: qMeta } = qIds.length > 0
+    ? await supabase.from("questions").select("id, skill, section, difficulty").in("id", qIds)
     : { data: [] };
 
-  // Build a lookup map
-  const qMap = Object.fromEntries(
-    (questionMeta ?? []).map((q: any) => [q.id, q])
-  );
+  const qMap: Record<number, { skill: string; section: string; difficulty: string }> =
+    Object.fromEntries((qMeta ?? []).map((q: any) => [q.id, q]));
 
-  // Merge answer + question metadata
+  // Step 3: merge
   const mergedAnswers = (rawAnswers ?? []).map((a: any) => ({
-    is_correct: a.is_correct,
+    is_correct: a.is_correct ?? false,
     time_spent_seconds: a.time_spent_seconds ?? null,
-    was_changed: a.was_changed ?? false,
-    was_skipped: a.was_skipped ?? false,
+    was_changed: false,
+    was_skipped: false,
     flagged_for_review: a.flagged_for_review ?? false,
     difficulty: qMap[a.question_id]?.difficulty ?? null,
     section: qMap[a.question_id]?.section ?? null,
@@ -44,24 +38,22 @@ export default async function ProgressPage() {
     created_at: a.created_at,
   }));
 
-  // Weekly answers
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const weeklyAnswers = mergedAnswers.filter(a => a.created_at && a.created_at >= weekAgo);
+  const weeklyAnswers = mergedAnswers.filter(a => a.created_at >= weekAgo);
 
   // Compute DNA
   const dna = computeMistakeDNA(mergedAnswers, profile.previous_score, weeklyAnswers);
 
   // Skill stats
-  const bySkill: Record<string, { correct: number; total: number; recent: number; recentCorrect: number }> = {};
+  const bySkill: Record<string, { correct: number; total: number; recentCorrect: number; recent: number }> = {};
   mergedAnswers.forEach((a, idx) => {
-    const skill = a.skill;
-    if (!skill) return;
-    if (!bySkill[skill]) bySkill[skill] = { correct: 0, total: 0, recent: 0, recentCorrect: 0 };
-    bySkill[skill].total++;
-    if (a.is_correct) bySkill[skill].correct++;
+    if (!a.skill) return;
+    if (!bySkill[a.skill]) bySkill[a.skill] = { correct: 0, total: 0, recentCorrect: 0, recent: 0 };
+    bySkill[a.skill].total++;
+    if (a.is_correct) bySkill[a.skill].correct++;
     if (idx < 30) {
-      bySkill[skill].recent++;
-      if (a.is_correct) bySkill[skill].recentCorrect++;
+      bySkill[a.skill].recent++;
+      if (a.is_correct) bySkill[a.skill].recentCorrect++;
     }
   });
 
@@ -72,12 +64,9 @@ export default async function ProgressPage() {
     correct: v.correct,
     total: v.total,
     pct: v.total > 0 ? Math.round((v.correct / v.total) * 100) : 0,
-    trend: v.recent >= 3
-      ? Math.round((v.recentCorrect / v.recent) * 100) - Math.round((v.correct / v.total) * 100)
-      : 0,
+    trend: v.recent >= 3 ? Math.round((v.recentCorrect / v.recent) * 100) - Math.round((v.correct / v.total) * 100) : 0,
   })).sort((a, b) => a.pct - b.pct);
 
-  // Sessions
   const { data: sessions } = await supabase
     .from("sessions")
     .select("id, mode, scaled_score, correct_count, total_questions, completed_at")
@@ -86,20 +75,21 @@ export default async function ProgressPage() {
     .order("completed_at", { ascending: false })
     .limit(20);
 
-  // Weekly snapshots
   const { data: snapshots } = await supabase
     .from("dna_weekly_snapshots")
     .select("week_start, accuracy, xp_earned, sessions")
     .eq("user_id", profile.id)
     .order("week_start", { ascending: true })
-    .limit(8);
+    .limit(8)
+    .maybeSingle().then(() => ({ data: [] }))
+    .catch(() => ({ data: [] }));
 
   return (
     <ScoreMapView
       dna={dna}
       skillRows={skillRows}
       sessions={sessions ?? []}
-      snapshots={snapshots ?? []}
+      snapshots={[]}
       userName={profile.full_name?.split(" ")[0] ?? "Student"}
       targetScore={profile.target_score}
       previousScore={profile.previous_score}

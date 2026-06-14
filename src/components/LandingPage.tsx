@@ -22,8 +22,9 @@ function Header() {
   return (
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-cream-100/70 border-b border-coffee-700/8">
       <div className="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-coffee-800 text-cream-50 grid place-items-center font-display italic font-bold text-lg">S</div>
+        <div className="flex items-center gap-2">
+          <img src="/logo.png" alt="SATPeaK" className="h-9 w-9 object-contain"
+            onError={(e) => { (e.target as HTMLImageElement).style.display="none"; }} />
           <span className="font-display font-semibold text-lg tracking-tight">SATPeaK</span>
         </div>
         <nav className="hidden md:flex items-center gap-7 text-sm text-coffee-700">
@@ -283,7 +284,8 @@ function Footer() {
     <footer className="border-t border-coffee-700/10 py-10 px-6">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-coffee-800 text-cream-50 grid place-items-center font-display italic font-bold text-sm">S</div>
+          <img src="/logo.png" alt="SATPeaK" className="h-7 w-7 object-contain"
+            onError={(e) => { (e.target as HTMLImageElement).style.display="none"; }} />
           <span className="font-display font-semibold text-sm">SATPeaK</span>
           <span className="text-coffee-500 text-xs">· Digital SAT prep, made in Uzbekistan</span>
         </div>
