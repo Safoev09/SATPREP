@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-client";
 import { SKILLS, getAllSkills, type Question } from "@/lib/skills";
 import { InlineMath, BlockMath } from "react-katex";
+import FormatToolbar from "@/components/FormatToolbar";
 
 type FormState = {
   source_test: string;
@@ -377,7 +378,9 @@ export default function QuestionForm({
       {/* PROMPT */}
       <Section title="Question content">
         <Field label="Prompt (the question itself)">
+          <FormatToolbar textareaId="qf-prompt" />
           <textarea
+            id="qf-prompt"
             value={form.prompt}
             onChange={(e) => update({ prompt: e.target.value })}
             rows={4}
@@ -513,7 +516,9 @@ export default function QuestionForm({
       {/* EXPLANATION */}
       <Section title="Explanation">
         <Field label="Explanation shown to students after they answer (required)">
+          <FormatToolbar textareaId="qf-explanation" />
           <textarea
+            id="qf-explanation"
             value={form.explanation}
             onChange={(e) => update({ explanation: e.target.value })}
             rows={6}

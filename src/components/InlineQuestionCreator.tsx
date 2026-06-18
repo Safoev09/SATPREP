@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase-client";
 import type { Question } from "@/lib/skills";
+import FormatToolbar from "@/components/FormatToolbar";
 
 const RW_SKILLS = [
   { id: "words_in_context", label: "Words in Context" },
@@ -37,7 +38,6 @@ type Props = {
 
 type FormState = {
   prompt: string;
-  prompt_image_url?: string;
   choice_a: string;
   choice_b: string;
   choice_c: string;
@@ -51,7 +51,6 @@ type FormState = {
 
 const emptyForm = (section: "reading_writing" | "math"): FormState => ({
   prompt: "",
-  prompt_image_url: "",
   choice_a: "",
   choice_b: "",
   choice_c: "",
@@ -111,7 +110,6 @@ export default function InlineQuestionCreator({
           skill: form.skill,
           difficulty: form.difficulty,
           prompt: form.prompt.trim(),
-          prompt_image_url: form.prompt_image_url?.trim() || null,
           choice_a: form.choice_a.trim(),
           choice_b: form.choice_b.trim(),
           choice_c: form.choice_c.trim(),
@@ -217,7 +215,9 @@ export default function InlineQuestionCreator({
 
           <label className="block">
             <span className="text-xs font-medium text-coffee-700 uppercase tracking-wide">Passage + Question prompt</span>
+            <FormatToolbar textareaId="iqc-prompt" />
             <textarea
+              id="iqc-prompt"
               value={form.prompt}
               onChange={(e) => setForm({ ...form, prompt: e.target.value })}
               rows={8}
@@ -226,19 +226,14 @@ export default function InlineQuestionCreator({
             />
           </label>
 
-          {/* LaTeX helper — only shown for Math section */}
+          {/* LaTeX helper — shown for Math section only */}
           {section === "math" && (
             <LatexHelper
-              prompt={form.prompt}
+              targetId="iqc-prompt"
+              value={form.prompt}
               onInsert={(latex) => setForm({ ...form, prompt: form.prompt + latex })}
             />
           )}
-
-          {/* Image upload for Math / charts */}
-          <ImageUpload
-            currentUrl={form.prompt_image_url ?? ""}
-            onUploaded={(url) => setForm({ ...form, prompt_image_url: url })}
-          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {(["A", "B", "C", "D"] as const).map((letter) => {
@@ -279,7 +274,9 @@ export default function InlineQuestionCreator({
             <span className="text-xs font-medium text-coffee-700 uppercase tracking-wide">
               Explanation (why right is right, why wrong are wrong)
             </span>
+            <FormatToolbar textareaId="iqc-explanation" />
             <textarea
+              id="iqc-explanation"
               value={form.explanation}
               onChange={(e) => setForm({ ...form, explanation: e.target.value })}
               rows={4}
@@ -335,108 +332,52 @@ export default function InlineQuestionCreator({
   );
 }
 
-// ---- Reusable image uploader for question images ----
-function ImageUpload({ currentUrl, onUploaded }: { currentUrl: string; onUploaded: (url: string) => void }) {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
-
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setError("File too large (max 5 MB)."); return; }
-    setUploading(true);
-    setError(null);
-    const fileName = `question-${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-    const { data, error: uploadError } = await supabase.storage
-      .from("question-images")
-      .upload(fileName, file, { upsert: true });
-    if (uploadError) { setError(uploadError.message); setUploading(false); return; }
-    const { data: urlData } = supabase.storage.from("question-images").getPublicUrl(data.path);
-    onUploaded(urlData.publicUrl);
-    setUploading(false);
-  };
-
-  return (
-    <div className="space-y-2">
-      <span className="text-xs font-medium text-coffee-700 uppercase tracking-wide">Image / diagram (optional)</span>
-      <div className="flex items-center gap-3">
-        <label className="cursor-pointer bg-cream-100 hover:bg-cream-200 border border-coffee-700/15 rounded-xl px-4 py-2 text-sm text-coffee-700 transition">
-          {uploading ? "Uploading…" : "📎 Upload image"}
-          <input type="file" accept="image/*" onChange={handleFile} className="hidden" />
-        </label>
-        {currentUrl && (
-          <div className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={currentUrl} alt="preview" className="h-10 w-16 object-cover rounded-lg border border-coffee-700/15" />
-            <button onClick={() => onUploaded("")} className="text-xs text-red-600 hover:text-red-800">Remove</button>
-          </div>
-        )}
-      </div>
-      {error && <p className="text-xs text-red-600">{error}</p>}
-    </div>
-  );
-}
-
 // ---- LaTeX Helper for Math questions ----
-function LatexHelper({ prompt, onInsert }: { prompt: string; onInsert: (latex: string) => void }) {
+function LatexHelper({ targetId, value, onInsert }: { targetId: string; value: string; onInsert: (latex: string) => void }) {
   const [showPreview, setShowPreview] = useState(false);
 
   const snippets = [
-    { label: "Fraction", latex: "\\frac{a}{b}", display: "a/b" },
-    { label: "Square root", latex: "\\sqrt{x}", display: "√x" },
-    { label: "Power", latex: "x^{2}", display: "x²" },
-    { label: "Subscript", latex: "x_{1}", display: "x₁" },
-    { label: "Multiply ×", latex: "\\times", display: "×" },
-    { label: "Divide ÷", latex: "\\div", display: "÷" },
-    { label: "Not equal ≠", latex: "\\neq", display: "≠" },
-    { label: "Less/equal ≤", latex: "\\leq", display: "≤" },
-    { label: "Greater/equal ≥", latex: "\\geq", display: "≥" },
-    { label: "π", latex: "\\pi", display: "π" },
-    { label: "Infinity ∞", latex: "\\infty", display: "∞" },
-    { label: "Quadratic", latex: "ax^{2}+bx+c=0", display: "ax²+bx+c=0" },
-    { label: "Linear", latex: "y=mx+b", display: "y=mx+b" },
-    { label: "Absolute value", latex: "|x|", display: "|x|" },
+    { label: "a/b", latex: "\\frac{a}{b}" },
+    { label: "√x", latex: "\\sqrt{x}" },
+    { label: "x²", latex: "x^{2}" },
+    { label: "x₁", latex: "x_{1}" },
+    { label: "×", latex: "\\times" },
+    { label: "÷", latex: "\\div" },
+    { label: "≠", latex: "\\neq" },
+    { label: "≤", latex: "\\leq" },
+    { label: "≥", latex: "\\geq" },
+    { label: "π", latex: "\\pi" },
+    { label: "∞", latex: "\\infty" },
+    { label: "ax²+bx+c=0", latex: "ax^{2}+bx+c=0" },
+    { label: "y=mx+b", latex: "y=mx+b" },
+    { label: "|x|", latex: "|x|" },
   ];
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <div className="text-xs font-semibold text-blue-800 uppercase tracking-wide">
-          📐 Math / LaTeX helper
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowPreview(v => !v)}
-          className="text-xs text-blue-600 hover:text-blue-800 underline"
-        >
+        <div className="text-xs font-semibold text-blue-800 uppercase tracking-wide">📐 Math / LaTeX helper</div>
+        <button type="button" onClick={() => setShowPreview(v => !v)} className="text-xs text-blue-600 hover:text-blue-800 underline">
           {showPreview ? "Hide preview" : "Show preview"}
         </button>
       </div>
-
       <p className="text-xs text-blue-700">
-        Wrap math in <code className="bg-blue-100 px-1 rounded">$...$</code> for inline.
-        Example: <code className="bg-blue-100 px-1 rounded">The value of $x^2 + 3x$ when $x=2$ is</code>
+        Wrap math in <code className="bg-blue-100 px-1 rounded">$...$</code>. Example:{" "}
+        <code className="bg-blue-100 px-1 rounded">The value of $x^2 + 3x$ when $x=2$ is</code>
       </p>
-
       <div className="flex flex-wrap gap-1.5">
         {snippets.map(s => (
-          <button
-            key={s.label}
-            type="button"
-            onClick={() => onInsert(` $${s.latex}$ `)}
+          <button key={s.label} type="button" onClick={() => onInsert(` $${s.latex}$ `)}
             title={`Insert: $${s.latex}$`}
-            className="bg-white border border-blue-200 text-blue-800 text-xs px-2.5 py-1 rounded-lg hover:bg-blue-100 transition"
-          >
-            {s.display}
+            className="bg-white border border-blue-200 text-blue-800 text-xs px-2.5 py-1 rounded-lg hover:bg-blue-100 transition">
+            {s.label}
           </button>
         ))}
       </div>
-
-      {showPreview && prompt && (
+      {showPreview && value && (
         <div className="bg-white border border-blue-200 rounded-lg p-3">
           <div className="text-[10px] text-blue-600 uppercase tracking-wide mb-2">Preview</div>
-          <RichTextPreview text={prompt} />
+          <RichTextPreview text={value} />
         </div>
       )}
     </div>
@@ -444,12 +385,11 @@ function LatexHelper({ prompt, onInsert }: { prompt: string; onInsert: (latex: s
 }
 
 function RichTextPreview({ text }: { text: string }) {
-  // Split by $...$ inline math
   const parts = text.split(/(\$[^$]+\$)/g);
   return (
     <div className="text-sm text-coffee-900 leading-relaxed whitespace-pre-wrap">
       {parts.map((part, i) => {
-        if (part.startsWith("$") && part.endsWith("$")) {
+        if (part.startsWith("$") && part.endsWith("$") && part.length > 2) {
           const math = part.slice(1, -1);
           try {
             const { InlineMath } = require("react-katex");
