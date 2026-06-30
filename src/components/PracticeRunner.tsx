@@ -318,99 +318,119 @@ export default function PracticeRunner({
       </header>
 
       {/* ===== MAIN CONTENT ===== */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* LEFT: passage (R&W) or nothing (Math) */}
-        {section === "reading_writing" && q.passage_id && passages[q.passage_id] && (
-          <div
-            onMouseEnter={() => setPassageFocused(true)}
-            onMouseLeave={() => setPassageFocused(false)}
-            className="w-1/2 border-r border-coffee-700/15 overflow-y-auto p-8 transition-all duration-300"
-          >
-            <div className="text-xs text-coffee-600 uppercase tracking-wider mb-3">
-              Passage
-            </div>
-            <Passage
-              text={passages[q.passage_id]}
-              highlightEnabled={highlightOn}
-              userId={userId}
-            />
-          </div>
-        )}
+      <div className="flex-1 flex overflow-hidden">
+        {/* LEFT PANE: passage (R&W) or question stem (Math) — always present, true Bluebook split */}
+        <div
+          onMouseEnter={() => setPassageFocused(true)}
+          onMouseLeave={() => setPassageFocused(false)}
+          className="w-1/2 border-r border-coffee-700/15 overflow-y-auto p-8 transition-all duration-300 bg-cream-50"
+        >
+          {section === "reading_writing" && q.passage_id && passages[q.passage_id] ? (
+            <>
+              <div className="text-xs text-coffee-600 uppercase tracking-wider mb-3 font-semibold">
+                Passage
+              </div>
+              <Passage
+                text={passages[q.passage_id]}
+                highlightEnabled={highlightOn}
+                userId={userId}
+              />
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-5">
+                <span className="bg-coffee-800 text-cream-50 font-medium text-sm px-3 py-1 rounded-lg">
+                  Question {current + 1} of {questions.length}
+                </span>
+                <button
+                  onClick={() => updateAnswer({ flagged: !a.flagged })}
+                  className={`text-sm px-2.5 py-1 rounded-lg transition ${
+                    a.flagged
+                      ? "bg-yellow-300 text-coffee-900"
+                      : "bg-cream-200 text-coffee-600 hover:bg-beige-300"
+                  }`}
+                >
+                  {a.flagged ? "🚩 Marked" : "⚐ Mark for review"}
+                </button>
+              </div>
 
-        {/* LEFT: embedded passage split from prompt (Bluebook style) */}
-        {section === "reading_writing" && !q.passage_id && splitPrompt(q.prompt).passage && (
-          <div
-            onMouseEnter={() => setPassageFocused(true)}
-            onMouseLeave={() => setPassageFocused(false)}
-            className="w-1/2 border-r border-coffee-700/15 overflow-y-auto p-8 transition-all duration-300"
-          >
-            <Passage
-              text={splitPrompt(q.prompt).passage!}
-              highlightEnabled={highlightOn}
-              userId={userId}
-            />
-          </div>
-        )}
+              <div className="font-display text-lg text-coffee-900 leading-relaxed mb-4">
+                <RichText text={q.prompt} />
+              </div>
 
-        {/* RIGHT: question + choices */}
-        <div className={`${
-          section === "reading_writing" && (q.passage_id || splitPrompt(q.prompt).passage) ? "w-1/2" : "w-full max-w-3xl mx-auto"
-        } overflow-y-auto p-8 transition-opacity duration-300 ${
+              {q.prompt_latex && (
+                <div className="bg-cream-100 rounded-lg p-4 mb-4 overflow-x-auto">
+                  <BlockMath math={q.prompt_latex} errorColor="#cc0000" />
+                </div>
+              )}
+
+              {q.prompt_image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={q.prompt_image_url}
+                  alt="Question figure"
+                  className="max-w-full rounded-lg border border-coffee-700/10 mb-4"
+                />
+              )}
+            </>
+          )}
+        </div>
+
+        {/* RIGHT PANE: answer choices — always on the right, Bluebook-accurate */}
+        <div className={`w-1/2 overflow-y-auto p-8 transition-opacity duration-300 ${
           passageFocused ? "opacity-60" : "opacity-100"
         }`}>
-          {/* Question number bar */}
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <span className="bg-coffee-800 text-cream-50 font-medium text-sm px-3 py-1 rounded-lg">
-                Question {current + 1} of {questions.length}
-              </span>
+          {/* When passage IS present, the question + choices both live here */}
+          {section === "reading_writing" && q.passage_id && passages[q.passage_id] && (
+            <>
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <span className="bg-coffee-800 text-cream-50 font-medium text-sm px-3 py-1 rounded-lg">
+                    Question {current + 1} of {questions.length}
+                  </span>
+                  <button
+                    onClick={() => updateAnswer({ flagged: !a.flagged })}
+                    className={`text-sm px-2.5 py-1 rounded-lg transition ${
+                      a.flagged
+                        ? "bg-yellow-300 text-coffee-900"
+                        : "bg-cream-200 text-coffee-600 hover:bg-beige-300"
+                    }`}
+                  >
+                    {a.flagged ? "🚩 Marked" : "⚐ Mark for review"}
+                  </button>
+                </div>
+                <button
+                  onClick={toggleBookmark}
+                  className={`text-sm px-2.5 py-1 rounded-lg transition ${
+                    a.bookmarked
+                      ? "bg-coffee-700 text-cream-50"
+                      : "bg-cream-200 text-coffee-600 hover:bg-beige-300"
+                  }`}
+                >
+                  {a.bookmarked ? "🔖 Saved" : "🔖 Save for later"}
+                </button>
+              </div>
+
+              <div className="font-display text-lg text-coffee-900 leading-relaxed mb-4">
+                <RichText text={q.prompt} />
+              </div>
+            </>
+          )}
+
+          {/* When NO passage, this top bar only shows the save button (question already shown on left) */}
+          {!(section === "reading_writing" && q.passage_id && passages[q.passage_id]) && (
+            <div className="flex items-center justify-end mb-5">
               <button
-                onClick={() => updateAnswer({ flagged: !a.flagged })}
+                onClick={toggleBookmark}
                 className={`text-sm px-2.5 py-1 rounded-lg transition ${
-                  a.flagged
-                    ? "bg-yellow-300 text-coffee-900"
+                  a.bookmarked
+                    ? "bg-coffee-700 text-cream-50"
                     : "bg-cream-200 text-coffee-600 hover:bg-beige-300"
                 }`}
               >
-                {a.flagged ? "🚩 Marked" : "⚐ Mark for review"}
+                {a.bookmarked ? "🔖 Saved" : "🔖 Save for later"}
               </button>
             </div>
-            <button
-              onClick={toggleBookmark}
-              className={`text-sm px-2.5 py-1 rounded-lg transition ${
-                a.bookmarked
-                  ? "bg-coffee-700 text-cream-50"
-                  : "bg-cream-200 text-coffee-600 hover:bg-beige-300"
-              }`}
-            >
-              {a.bookmarked ? "🔖 Saved" : "🔖 Save for later"}
-            </button>
-          </div>
-
-          {/* Prompt */}
-          <div className="font-display text-lg text-coffee-900 leading-relaxed mb-4">
-            <RichText text={
-              section === "reading_writing" && !q.passage_id && splitPrompt(q.prompt).passage
-                ? splitPrompt(q.prompt).question
-                : q.prompt
-            } />
-          </div>
-
-          {/* LaTeX block */}
-          {q.prompt_latex && (
-            <div className="bg-cream-100 rounded-lg p-4 mb-4 overflow-x-auto">
-              <BlockMath math={q.prompt_latex} errorColor="#cc0000" />
-            </div>
-          )}
-
-          {/* Image */}
-          {q.prompt_image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={q.prompt_image_url}
-              alt="Question figure"
-              className="max-w-full rounded-lg border border-coffee-700/10 mb-4"
-            />
           )}
 
           {/* Answer area */}
@@ -709,53 +729,4 @@ function Passage({
       )}
     </>
   );
-}
-
-// ---- Smart prompt splitter: separates embedded passage from question stem ----
-// Bluebook-style: passage renders on the left, question stem + choices on the right.
-const QUESTION_STEM_PATTERNS = [
-  /^Question:/i,
-  /^Which choice/i, /^Which finding/i, /^Which quotation/i, /^Which statement/i,
-  /^Based on the text/i, /^Based on the texts/i, /^According to the text/i,
-  /^As used in the text/i, /^The student wants/i, /^What does the/i,
-  /^What is the main/i, /^The author makes/i, /^Which choice best/i,
-  /^What function/i, /^How does the/i, /^The passage/i,
-];
-
-function splitPrompt(prompt: string): { passage: string | null; question: string } {
-  if (!prompt || prompt.length < 150) return { passage: null, question: prompt };
-
-  // Try double newline split first, then single newline
-  let paragraphs = prompt.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-  if (paragraphs.length < 2) {
-    paragraphs = prompt.split(/\n/).map(p => p.trim()).filter(Boolean);
-  }
-  if (paragraphs.length < 2) return { passage: null, question: prompt };
-
-  // Find the LAST paragraph that looks like a question stem
-  let stemIndex = -1;
-  for (let i = paragraphs.length - 1; i >= 0; i--) {
-    const p = paragraphs[i].trim();
-    if (QUESTION_STEM_PATTERNS.some((re) => re.test(p))) {
-      stemIndex = i;
-      break;
-    }
-  }
-
-  // Fallback: last paragraph ends with "?" and passage part is substantial
-  if (stemIndex === -1) {
-    const last = paragraphs[paragraphs.length - 1].trim();
-    if (last.endsWith("?") && paragraphs.slice(0, -1).join(" ").length > 150) {
-      stemIndex = paragraphs.length - 1;
-    }
-  }
-
-  if (stemIndex <= 0) return { passage: null, question: prompt };
-
-  const passage = paragraphs.slice(0, stemIndex).join("\n\n").trim();
-  const question = paragraphs.slice(stemIndex).join("\n\n").trim()
-    .replace(/^Question:\s*/i, ""); // strip "Question:" prefix for cleaner display
-
-  if (passage.length < 100) return { passage: null, question: prompt };
-  return { passage, question };
 }

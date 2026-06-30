@@ -8,7 +8,7 @@ export default async function ProgressPage() {
   const { profile } = await requireStudent();
   const supabase = createClient();
 
-  // Step 1: fetch answers with ONLY columns that exist in the answers table
+  // Step 1: fetch raw answers — only columns guaranteed to exist on answers table
   const { data: rawAnswers } = await supabase
     .from("answers")
     .select("question_id, is_correct, time_spent_seconds, flagged_for_review, created_at")
@@ -16,7 +16,8 @@ export default async function ProgressPage() {
     .order("created_at", { ascending: false })
     .limit(500);
 
-  // Step 2: fetch question metadata separately (skill/section/difficulty are on questions table)
+  // Step 2: fetch question metadata (skill/section/difficulty) separately —
+  // Supabase nested joins return arrays, not objects, so we avoid that entirely.
   const qIds = [...new Set((rawAnswers ?? []).map((a: any) => a.question_id).filter(Boolean))];
   const { data: qMeta } = qIds.length > 0
     ? await supabase.from("questions").select("id, skill, section, difficulty").in("id", qIds)
@@ -35,16 +36,16 @@ export default async function ProgressPage() {
     difficulty: qMap[a.question_id]?.difficulty ?? null,
     section: qMap[a.question_id]?.section ?? null,
     skill: qMap[a.question_id]?.skill ?? null,
-    created_at: a.created_at,
+    created_at: a.created_at as string,
   }));
 
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const weeklyAnswers = mergedAnswers.filter(a => a.created_at >= weekAgo);
 
-  // Compute DNA
+  // Compute Mistake DNA
   const dna = computeMistakeDNA(mergedAnswers, profile.previous_score, weeklyAnswers);
 
-  // Skill stats
+  // Skill stats for the Skill Map tab
   const bySkill: Record<string, { correct: number; total: number; recentCorrect: number; recent: number }> = {};
   mergedAnswers.forEach((a, idx) => {
     if (!a.skill) return;
@@ -75,26 +76,11 @@ export default async function ProgressPage() {
     .order("completed_at", { ascending: false })
     .limit(20);
 
-  // Weekly snapshots - table may not exist yet, so we safely default to empty
-  let snapshots: any[] = [];
-  try {
-    const { data: snapshotData } = await supabase
-      .from("dna_weekly_snapshots")
-      .select("week_start, accuracy, xp_earned, sessions")
-      .eq("user_id", profile.id)
-      .order("week_start", { ascending: true })
-      .limit(8);
-    snapshots = snapshotData ?? [];
-  } catch {
-    snapshots = [];
-  }
-
   return (
     <ScoreMapView
       dna={dna}
       skillRows={skillRows}
       sessions={sessions ?? []}
-      snapshots={[]}
       userName={profile.full_name?.split(" ")[0] ?? "Student"}
       targetScore={profile.target_score}
       previousScore={profile.previous_score}
